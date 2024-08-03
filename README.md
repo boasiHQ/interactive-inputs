@@ -8,6 +8,18 @@ This action allows you to create interactive inputs in your GitHub Actions workf
 
 It was created to solve the problem of GitHub Actions needing a core feature such as in-workflow inputs like its counterparts such as Jenkins, where you can make an in-pipeline input that will prompt the user during runtime for input and then use that input in the workflow.
 
+<!-- action-docs-inputs source="action.yml" -->
+## Inputs
+
+| name | description | required | default |
+| --- | --- | --- | --- |
+| `title` | <p>The title of the interactive inputs form</p> | `false` | `""` |
+| `interactive` | <p>The representation (in yaml) of fields to be displayed. See https://github.com/boasiHQ/interactive-inputs?tab=readme-ov-file#input-fields-types for more information</p> | `true` | `fields:   - label: random-string     properties:       display: Enter a random string       type: text       description: A random string up to 20 characters long       maxLength: 20       required: false   - label: choice     properties:       display: Select a monitoring tool       type: select       description: Available options to chose from       choices: ["datadog", "sentry", "grafana"]       required: true ` |
+| `timeout` | <p>The timeout in seconds for the interactive inputs form</p> | `false` | `300` |
+<!-- action-docs-inputs source="action.yml" -->
+
+To see the full list of supported input fields for the `interactive` input, see the [Input Fields Types](#input-fields-types) section below.
+
 ### Screenshots
 
 Here are some screenshots of the Interactive Input action... in action 👀😔:

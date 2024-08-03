@@ -1,0 +1,15 @@
+{
+  "name": "interactive-inputs",
+  "version": "1.0.0",
+  "main": "invoke-binary.js",
+  "url": "https://interactiveinputs.com",
+  "author": "Leon Silcott <leon@boasi.io>",
+  "repository": "https://github.com/boasiHQ/interactive-inputs.git",
+  "license": "MIT",
+  "scripts": {
+    "readme": "action-docs -un -t 1"
+  },
+  "devDependencies": {
+    "action-docs": "^2.4.0"
+  }
+}

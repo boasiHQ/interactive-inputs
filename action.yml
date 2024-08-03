@@ -1,0 +1,38 @@
+name: 'Interactive Inputs'
+description: 'Introduce dynamic inputs to your workflows and use them in your actions'
+author: 'Leon Silcott <leon@boasi.io>'
+inputs:
+  title:
+    description: 'The title of the interactive inputs form'
+    required: false
+    type: string
+  interactive:
+    description: 'The representation (in yaml) of fields to be displayed. See https://github.com/boasiHQ/interactive-inputs?tab=readme-ov-file#input-fields-types for more information'
+    required: true
+    type: string
+    default: |
+      fields:
+        - label: random-string
+          properties:
+            display: Enter a random string
+            type: text
+            description: A random string up to 20 characters long
+            maxLength: 20
+            required: false
+        - label: choice
+          properties:
+            display: Select a monitoring tool
+            type: select
+            description: Available options to chose from
+            choices: ["datadog", "sentry", "grafana"]
+            required: true
+  timeout:
+    description: 'The timeout in seconds for the interactive inputs form'
+    required: false
+    type: number
+    default: 300
+
+
+runs:
+  using: 'node20'
+  main: 'invoke-binary.js'

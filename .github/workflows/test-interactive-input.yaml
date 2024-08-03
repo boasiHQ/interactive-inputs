@@ -1,0 +1,50 @@
+name: '[Example] Interactive Inputs'
+
+on:
+  push:
+
+jobs:
+  interactive-inputs:
+    timeout-minutes: 3
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    env:
+      NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Example Interactive Inputs Step
+        id: interactive-inputs
+        uses: boasiHQ/interactive-inputs@main
+        with:
+          timeout: 160
+          title: 'A batch of 10 feature flags have been added to be deployed. Would you like to proceed?'
+          interactive: |
+            fields:
+              - label: continue-roll-out
+                properties:
+                  display: Continue to roll out?
+                  defaultValue: 'false'
+                  type: boolean
+                  required: true
+              - label: exclude-domains
+                properties:
+                  description: Select the domains to exclude from the roll out
+                  display: Exclude domain(s)
+                  type: multiselect
+                  choices: 
+                    ["Payments", "Bookings", "Notifications", "Support"]
+              - label: notes
+                properties:
+                  display: Additional note(s)
+                  type: textarea
+                  description: Additional notes on why this decision has been made are to be added to the audit trail.
+
+      - name: Display Outputs
+        shell: bash
+        run: |
+          echo "Display Outputs"
+          echo -e "\n==============================\n"
+          echo "Detected Outputs: ${{join(steps.interactive-inputs.outputs.*, '\n')}}"
+          echo -e "\n==============================\n"

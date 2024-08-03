@@ -1,0 +1,5 @@
+# asdf plugin-add nodejs
+nodejs 20.12.2
+
+# asdf plugin-add yarn
+yarn 1.22.18
