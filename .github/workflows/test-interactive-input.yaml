@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasiHQ/interactive-inputs@main
+        uses: boasihq/interactive-inputs@main
         with:
           timeout: 160
           title: 'A batch of 10 feature flags have been added to be deployed. Would you like to proceed?'

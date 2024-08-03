@@ -14,7 +14,7 @@ It was created to solve the problem of GitHub Actions needing a core feature suc
 | name | description | required | default |
 | --- | --- | --- | --- |
 | `title` | <p>The title of the interactive inputs form</p> | `false` | `""` |
-| `interactive` | <p>The representation (in yaml) of fields to be displayed. See https://github.com/boasiHQ/interactive-inputs?tab=readme-ov-file#input-fields-types for more information</p> | `true` | `fields:   - label: random-string     properties:       display: Enter a random string       type: text       description: A random string up to 20 characters long       maxLength: 20       required: false   - label: choice     properties:       display: Select a monitoring tool       type: select       description: Available options to chose from       choices: ["datadog", "sentry", "grafana"]       required: true ` |
+| `interactive` | <p>The representation (in yaml) of fields to be displayed. See https://github.com/boasihq/interactive-inputs?tab=readme-ov-file#input-fields-types for more information</p> | `true` | `fields:   - label: random-string     properties:       display: Enter a random string       type: text       description: A random string up to 20 characters long       maxLength: 20       required: false   - label: choice     properties:       display: Select a monitoring tool       type: select       description: Available options to chose from       choices: ["datadog", "sentry", "grafana"]       required: true ` |
 | `timeout` | <p>The timeout in seconds for the interactive inputs form</p> | `false` | `300` |
 <!-- action-docs-inputs source="action.yml" -->
 
@@ -34,7 +34,7 @@ Here are some screenshots of the Interactive Input action... in action 👀😔:
 To get started, there are three main steps:
 
 1. Sign up to NGROK and get your auth token if you do not already have one by [**clicking here**](https://dashboard.ngrok.com/signup)
-2. Add this action `boasiHQ/interactive-inputs@v1` to your workflow file. See [the example below](#example) for more information.
+2. Add this action `boasihq/interactive-inputs@v1` to your workflow file. See [the example below](#example) for more information.
 3. Use the predictable output variables from your interactive input portal to create dynamic workflows.
 
 > Note, this action requires an ARM64 or AMD64 (x86) runner to run i.e. `ubuntu-latest`
@@ -62,7 +62,7 @@ jobs:
     steps:
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasiHQ/interactive-inputs@v1
+        uses: boasihq/interactive-inputs@v1
         with:
           timeout: 160
           title: 'A batch of 10 feature flags have been added to be deployed. Would you like to proceed?'
@@ -103,7 +103,7 @@ When using this action, here are a few key points to note:
 - The portal will display fields in the order defined in the `fields` array.
 - The `label` property is used to identify the input field and its corresponding output. For example, the `label` property in the `fields` array for **Continue to roll out?** is `continue-roll-out`. This means that the output will be stored in a variable called `continue-roll-out`, which can be accessed using the syntax `${{ steps.interactive-inputs.outputs.continue-roll-out }}`.
 - The env `NGROK_AUTHTOKEN` and `GITHUB_TOKEN` authenticate the request to the Ngrok API and the GitHub API, respectively. Both are needed to be set in the workflow file.
-  - Signing up for NGROK is free and quick; it can be done [here](https://dashboard.ngrok.com/signup).
+  - Signing up for NGROK is free and quick; it can be done [here](https://dashboard.ngrok.com/signup).
 - There are various [types of input fields](#input-fields-types) that can be used, [**vist the input fields types**](#input-fields-types) in this README for more information.
 - The `timeout` property sets the timeout for the interactive input. The workflow will fail if the user does not respond within the timeout period.
 
@@ -116,7 +116,7 @@ The input fields shape the user interface of the interactive input. The input fi
       ...
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasiHQ/interactive-inputs@v1
+        uses: boasihq/interactive-inputs@v1
         with:
           ...
           interactive: |
