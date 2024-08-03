@@ -34,7 +34,7 @@ Here are some screenshots of the Interactive Input action... in action 👀😔:
 To get started, there are three main steps:
 
 1. Sign up to NGROK and get your auth token if you do not already have one by [**clicking here**](https://dashboard.ngrok.com/signup)
-2. Add this action `boasihq/interactive-inputs@v1` to your workflow file. See [the example below](#example) for more information.
+2. Add this action `boasihq/interactive-inputs@v1.0.0` to your workflow file. See [the example below](#example) for more information.
 3. Use the predictable output variables from your interactive input portal to create dynamic workflows.
 
 > Note, this action requires an ARM64 or AMD64 (x86) runner to run i.e. `ubuntu-latest`
@@ -62,7 +62,7 @@ jobs:
     steps:
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@v1
+        uses: boasihq/interactive-inputs@v1.0.0
         with:
           timeout: 160
           title: 'A batch of 10 feature flags have been added to be deployed. Would you like to proceed?'
@@ -116,7 +116,7 @@ The input fields shape the user interface of the interactive input. The input fi
       ...
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@v1
+        uses: boasihq/interactive-inputs@v1.0.0
         with:
           ...
           interactive: |
