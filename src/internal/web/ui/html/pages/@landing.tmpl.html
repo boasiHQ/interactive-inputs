@@ -1,0 +1,341 @@
+{{define "title"}}{{ .RepoOwner }}{{end}}
+
+
+{{define "head"}}
+
+<!-- <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.3/dist/full.min.css" rel="stylesheet" type="text/css" /> -->
+<link href="/static/libs/daisyui-full.min.css" rel="stylesheet" type="text/css" />
+
+<link rel='stylesheet' href='/static/css/tailwind-base.css'>
+{{template "tailwind-conf-script" .}}
+
+
+{{end}}
+
+{{block "body" . }}
+
+<body>
+    {{template "main" .}}
+    {{block "after-main" .}}{{end}}
+</body>
+{{end}}
+
+{{define "main"}}
+<!-- ===== Page Wrapper Start ===== -->
+<div class="h-full bg-[#F5F5F5] dark:bg-[#1F1F1F]">
+    <!-- ===== NavBar Start ===== -->
+    {{block "navbar" .}}{{end}}
+    <!-- ===== NavBar End ===== -->
+
+    <main class="h-screen w-screen">
+        <div class="flex flex-col items-center bg-[#F5F5F5] dark:bg-[#1F1F1F]">
+            <div class="isolate p-6 py-8 sm:py-10 lg:px-8 bg-background m-5 rounded-xl shadow max-w-lg lg:max-w-2xl md:w-[728px]">
+                <div class="mx-auto max-w-2xl text-center flex flex-col items-center">
+                    <a href="https://interactiveinputs.com" target="_blank">
+                      <div class="tooltip  tooltip-bottom" data-tip="Interactive Inputs">
+                        <img src="/static/img/interactive-inputs-with-text-no-bg-text-black.png" class="w-48" alt="Interactive Inputs logo">
+                      </div>  
+                    </a>
+                    {{ if .Title }}
+                      <h2 id="title" name="title" class="mt-2 text-2xl leading-8 text-gray-600 font-bold">
+                        {{ .Title }}
+                      </h2>
+                    {{end}}
+                </div>
+                <form id="form-interactive-inputs"  hx-post="/submit" hx-target="this" hx-swap="outerHTML" method="POST" class="mx-auto mt-16 max-w-xl sm:mt-20">
+                    <div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+                      {{ if and .Fields .Fields.Fields }}
+               
+                          {{ range $i, $interactiveInput := .Fields.Fields }}
+
+                            {{$inputLabel := $interactiveInput.Label }}
+                            {{$inputDisplay := $interactiveInput.Properties.Display }}
+                            {{$inputType := $interactiveInput.Properties.Type }}
+                            {{$inputDescription := $interactiveInput.Properties.Description }}
+                            {{$inputChoices := $interactiveInput.Properties.Choices }}
+                            {{$inputRequired := $interactiveInput.Properties.Required }}
+                            {{$inputMaxLength := $interactiveInput.Properties.MaxLength }}
+                            {{$inputPlaceholder := $interactiveInput.Properties.Placeholder }}
+                            {{$inputNumberMin := $interactiveInput.Properties.NumberMin }}
+                            {{$inputNumberMax := $interactiveInput.Properties.NumberMax }}
+                            {{$inputDefaultValue := $interactiveInput.Properties.DefaultValue }}
+                            {{$inputReadOnly := $interactiveInput.Properties.ReadOnly }}
+
+
+                            {{ if eq $inputType "text" }}
+                              <div class="sm:col-span-2">
+                                  <span class="flex mr-2">
+                                      <label for="{{ $inputLabel }}" class="block text-sm font-semibold leading-6 text-gray-900">{{ $inputDisplay }}</label>
+                                      {{ if $inputDescription }}
+                                        <div class="dropdown dropdown-right">
+                                            <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]">
+                                              <svg
+                                                tabindex="0"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                class="h-4 w-4 stroke-current">
+                                                <path
+                                                  stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  stroke-width="2"
+                                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                              </svg>
+                                            </div>
+                                            <div
+                                              tabindex="0"
+                                              class="card compact dropdown-content bg-base-100 rounded-box z-[1] w-64 shadow">
+                                              <div tabindex="0" class="card-body">
+                                                <h2 class="card-title">More info?</h2>
+                                                <p>{{ $inputDescription }}</p>
+                                              </div>
+                                            </div>
+                                        </div>
+                                      {{ end }}
+                                  </span>
+                                  <div class="mt-2.5">
+                                      <input type="text" name="{{ $inputLabel }}" id="{{ $inputLabel }}" autocomplete="on" {{ if gt $inputMaxLength 0 }} maxlength="{{ $inputMaxLength }}" {{ end}} {{ if $inputRequired }} required {{ end }}  {{ if $inputPlaceholder }} placeholder="{{ $inputPlaceholder }}" {{ end }} {{ if $inputDefaultValue }}  value="{{ $inputDefaultValue }}" {{ end }} class="input input-bordered w-full max-w-xl" />
+                                  </div>
+                              </div>
+                            {{ end }}
+
+                            {{ if eq $inputType "number" }}
+                              <div class="sm:col-span-2">
+                                  <span class="flex mr-2">
+                                      <label for="{{ $inputLabel }}" class="block text-sm font-semibold leading-6 text-gray-900">{{ $inputDisplay }}</label>
+                                      {{ if $inputDescription }}
+                                        <div class="dropdown dropdown-right">
+                                            <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]">
+                                              <svg
+                                                tabindex="0"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                class="h-4 w-4 stroke-current">
+                                                <path
+                                                  stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  stroke-width="2"
+                                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                              </svg>
+                                            </div>
+                                            <div
+                                              tabindex="0"
+                                              class="card compact dropdown-content bg-base-100 rounded-box z-[1] w-64 shadow">
+                                              <div tabindex="0" class="card-body">
+                                                <h2 class="card-title">More info?</h2>
+                                                <p>{{ $inputDescription }}</p>
+                                              </div>
+                                            </div>
+                                        </div>
+                                      {{ end }}
+                                  </span>                            
+                                  <div class="mt-2.5">
+                                      <input  name="{{ $inputLabel }}" id="{{ $inputLabel }}" type="number" {{ if $inputRequired }} required {{ end }} {{ if $inputNumberMin }}  min="{{ $inputNumberMin }}"  {{ end }} {{ if $inputNumberMax }}  max="{{ $inputNumberMax }}"  {{ end }}  {{ if $inputPlaceholder }} placeholder="{{ $inputPlaceholder }}" {{ end }} {{ if $inputDefaultValue }}  value="{{ $inputDefaultValue }}" {{ end }}  class="input input-bordered w-full max-w-xl" />
+                                  </div>
+                              </div>
+                            {{ end }}
+
+                            {{ if eq $inputType "select" }}
+                              <div class="sm:col-span-2">
+                                  <span class="flex mr-2">
+                                      <label for="{{ $inputLabel }}" class="block text-sm font-semibold leading-6 text-gray-900">{{ $inputDisplay }}</label>
+                                      {{ if $inputDescription }}
+                                        <div class="dropdown dropdown-right">
+                                            <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]">
+                                              <svg
+                                                tabindex="0"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                class="h-4 w-4 stroke-current">
+                                                <path
+                                                  stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  stroke-width="2"
+                                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                              </svg>
+                                            </div>
+                                            <div
+                                              tabindex="0"
+                                              class="card compact dropdown-content bg-base-100 rounded-box z-[1] w-64 shadow">
+                                              <div tabindex="0" class="card-body">
+                                                <h2 class="card-title">More info?</h2>
+                                                <p>{{ $inputDescription }}</p>
+                                              </div>
+                                            </div>
+                                        </div>
+                                      {{ end }}
+                                  </span>                            
+                                  <div class="mt-2.5">
+                                    <select id="{{ $inputLabel }}" name="{{ $inputLabel }}"  {{ if $inputRequired }} required {{ end }} class="select select-bordered w-full max-w-xl">
+                                        <option disabled selected value> -- select an option -- </option>
+                                        {{ range $ci, $choiceValue := $inputChoices }}
+                                          <option>{{ $choiceValue }}</option>
+                                        {{end}}
+                                    </select>
+                                  </div>
+                              </div>
+                            {{ end }}
+
+                            {{ if eq $inputType "multiselect" }}
+                              <div class="sm:col-span-2">
+                                  <span class="flex mr-2">
+                                      <label for="{{ $inputLabel }}" class="block text-sm font-semibold leading-6 text-gray-900">{{ $inputDisplay }}</label>
+                                      {{ if $inputDescription }}
+                                        <div class="dropdown dropdown-right">
+                                            <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]">
+                                              <svg
+                                                tabindex="0"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                class="h-4 w-4 stroke-current">
+                                                <path
+                                                  stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  stroke-width="2"
+                                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                              </svg>
+                                            </div>
+                                            <div
+                                              tabindex="0"
+                                              class="card compact dropdown-content bg-base-100 rounded-box z-[1] w-64 shadow">
+                                              <div tabindex="0" class="card-body">
+                                                <h2 class="card-title">More info?</h2>
+                                                <p>{{ $inputDescription }}</p>
+                                              </div>
+                                            </div>
+                                        </div>
+                                      {{ end }}
+                                  </span>                            
+                                  <div class="mt-2.5">
+                                          <!-- TODO: Figure out how to make select input have height of 48px until the use hovers over it for it
+                                          to expand to 80px -->
+                                          <select id="{{ $inputLabel }}" name="{{ $inputLabel }}" {{ if $inputRequired }} required {{ end }} class="select select-bordered w-full max-w-xl" multiple>
+                                            <option disabled selected value> -- select option(s) -- </option>
+                                            {{ range $ci, $choiceValue := $inputChoices }}
+                                              <option>{{ $choiceValue }}</option>
+                                            {{end}}
+                                          </select>
+                                  </div>
+                              </div>
+                            {{ end }}
+
+                            {{ if eq $inputType "textarea" }}
+                              <div class="sm:col-span-2">
+                                  <span class="flex mr-2">
+                                      <label for="{{ $inputLabel }}" class="block text-sm font-semibold leading-6 text-gray-900">{{ $inputDisplay }}</label>
+                                      {{ if $inputDescription }}
+                                        <div class="dropdown dropdown-right">
+                                            <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]">
+                                              <svg
+                                                tabindex="0"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                class="h-4 w-4 stroke-current">
+                                                <path
+                                                  stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  stroke-width="2"
+                                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                              </svg>
+                                            </div>
+                                            <div
+                                              tabindex="0"
+                                              class="card compact dropdown-content bg-base-100 rounded-box z-[1] w-64 shadow">
+                                              <div tabindex="0" class="card-body">
+                                                <h2 class="card-title">More info?</h2>
+                                                <p>{{ $inputDescription }}</p>
+                                              </div>
+                                            </div>
+                                        </div>
+                                      {{ end }}
+                                  </span>     
+                                  <div class="mt-2.5">
+                                      <textarea id="{{ $inputLabel }}" name="{{ $inputLabel }}"  {{ if $inputRequired }} required {{ end }} {{ if $inputPlaceholder }} placeholder="{{ $inputPlaceholder }}" {{ end }} {{ if $inputReadOnly }}  disabled {{ end }} class="textarea textarea-bordered textarea-lg w-full max-w-xl">{{ if $inputDefaultValue }}{{ $inputDefaultValue }}{{ end }}</textarea>
+                                  </div>
+                              </div>
+                            {{ end }}
+                            
+                            {{ if eq $inputType "boolean" }}
+                              <div class="sm:col-span-2">
+                                  <span class="flex mr-2">
+                                      <label class="block text-sm font-semibold leading-6 text-gray-900">{{ $inputDisplay }}</label>
+                                      {{ if $inputDescription }}
+                                        <div class="dropdown dropdown-right">
+                                            <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]">
+                                              <svg
+                                                tabindex="0"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                class="h-4 w-4 stroke-current">
+                                                <path
+                                                  stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  stroke-width="2"
+                                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                              </svg>
+                                            </div>
+                                            <div
+                                              tabindex="0"
+                                              class="card compact dropdown-content bg-base-100 rounded-box z-[1] w-64 shadow">
+                                              <div tabindex="0" class="card-body">
+                                                <h2 class="card-title">More info?</h2>
+                                                <p>{{ $inputDescription }}</p>
+                                              </div>
+                                            </div>
+                                        </div>
+                                      {{ end }}
+                                  </span>                            
+                                  <div class="mt-2.5">
+                                      <fieldset form="form-interactive-inputs">                                
+                                          <div>
+                                            <input type="radio" name="{{ $inputLabel }}" id="{{ $inputLabel }}_true"  value="true" {{ if eq $inputDefaultValue "true" }} checked {{ end }} />
+                                            <label for="{{ $inputLabel }}_true">True</label>
+                                          </div>
+                                        
+                                          <div>
+                                            <input type="radio" name="{{ $inputLabel }}" id="{{ $inputLabel }}_false" value="false" {{ if eq $inputDefaultValue "false" }} checked {{ end }} />
+                                            <label for="{{ $inputLabel }}_false">False</label>
+                                          </div>
+                                        
+                                      </fieldset>
+                                  </div>
+                              </div>
+                            {{ end }}
+                          {{ end }}
+                      {{ end }}
+                    </div>
+                    <!-- ==== Reminder Start ==== -->
+                    <div class="bg-[#FEF1D8] border-0 alert text-sm mt-10"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6 text-[#FFC167]">
+                        <path fill="currentColor" d="M15 1H9v2h6zm-4 13h2V8h-2zm8.03-6.61l1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42A8.962 8.962 0 0 0 12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9a8.994 8.994 0 0 0 7.03-14.61M12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7s7 3.13 7 7s-3.13 7-7 7"></path>
+                    
+                    </svg> <div class="text-[#808180]">This Interactive Inputs portal expires in approximately <span class="font-medium">{{ .Timeout }} minutes</span></div></div>
+                    <!-- ==== Reminder End ==== -->
+                    <div class="mt-8 flex flex-col justify-center gap-y-3 items-center">
+                        <a hx-post="/cancel" hx-target="#form-interactive-inputs" type="submit" class="btn btn-ghost btn-md btn-wide ">Cancel</a>
+                        <button type="submit" class="btn btn-wide btn-md">Submit</button>
+                    </div>
+                </form>
+            </div>
+            <!-- ===== Footer Start ===== -->
+            <div class="flex justify-center w-full p-6 z-50 bg-[#F5F5F5] dark:bg-[#1F1F1F]">
+                <div class="flex flex-col text-center items-center gap-x-2">
+                    <span><a href="https://interactiveinputs.com" target="_blank"><strong>Interactive Inputs</strong></a> - Made with ❤️ by <a href="https://x.com/leonTheEighth" target="_blank"><u><strong>Leon Silcott</strong></u></a>.</span>
+                    
+                    <span>From a Platform engineer to all makers.</span>
+                </div>
+              
+            </div>
+           
+            <!-- ===== Footer End ===== -->
+        </div>
+
+    </main>
+</div>
+
+<!-- ===== Page Wrapper End ===== -->
+{{end}}

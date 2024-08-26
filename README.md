@@ -8,6 +8,10 @@ This action allows you to create interactive inputs in your GitHub Actions workf
 
 It was created to solve the problem of GitHub Actions needing a core feature such as in-workflow inputs like its counterparts such as Jenkins, where you can make an in-pipeline input that will prompt the user during runtime for input and then use that input in the workflow.
 
+### Developing Locally
+
+If you would like to contribute, fix a bug, or play around with this action locally, please follow the instructions outline in the [**getting started** file](./gettting-started.md).
+
 <!-- action-docs-inputs source="action.yml" -->
 ## Inputs
 

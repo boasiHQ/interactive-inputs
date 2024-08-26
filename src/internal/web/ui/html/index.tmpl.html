@@ -1,0 +1,68 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en"  data-theme="light">
+
+<head>
+    <title>{{template "title" .}} | Interactive Inputs</title>
+
+    <style>
+        [x-cloak] {
+          display: none !important;
+        }
+    </style>
+
+    {{template "head-meta" .}}
+
+    <!-- HTMX -->
+    <script src="/static/libs/htmx.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="/static/libs/tailwindcss.js"></script>
+
+    <!-- Alpine JS Plugins -->
+    <script defer src="/static/libs/alpine-persist.js"></script>
+
+    <!-- Alpine JS Core -->
+    <script defer src="/static/libs/alpine.js"></script>
+
+    <!-- Toasty -->
+    <script src="/static/js/toasty.js"></script>
+
+
+
+    {{block "head" .}} {{end}}
+
+    <link rel="stylesheet" href="/static/css/satoshi.css" />
+
+    <script src="/static/js/main.js" type="text/javascript"></script>
+</head>
+
+{{block "body" . }}
+    <body>
+        {{template "main" .}} {{block "after-main" .}}{{end}}
+    </body>
+{{end}}
+
+
+{{block "shared-modal-user-settings" .}}{{end}}
+
+<script>
+
+    htmx.defineExtension("submitjson", {
+        onEvent: function (name, evt) {
+            if (name === "htmx:configRequest") {
+                evt.detail.headers["Content-Type"] = "application/json";
+            }
+        },
+        encodeParameters: function (xhr, parameters, elt) {
+            xhr.overrideMimeType("text/json");
+            return JSON.stringify(parameters);
+        },
+    });
+
+    // initiate toast
+    const toasty = new Toasty();
+</script>
+
+</html>
+{{end}}

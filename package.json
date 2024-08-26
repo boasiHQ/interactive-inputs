@@ -7,9 +7,15 @@
   "repository": "https://github.com/boasiHQ/interactive-inputs.git",
   "license": "MIT",
   "scripts": {
-    "readme": "action-docs -un -t 1"
+    "readme": "action-docs -un -t 1",
+    "package": "echo 'building binaries...' && cd src && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags=\"-w -s\" -o ../dist/action-amd64 main.go && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -installsuffix cgo -ldflags=\"-w -s\" -o ../dist/action-arm64 main.go",
+    "fmt": "cd src && go fmt  ./...",
+    "test": "cd src && go test -v  ./...",
+    "test:coverage": "cd src && go test -coverprofile=cover.out ./... && go tool cover -html=cover.out"
   },
   "devDependencies": {
-    "action-docs": "^2.4.0"
+    "action-docs": "^2.4.0",
+    "husky": "^9.0.11",
+    "prettier": "^3.2.5"
   }
 }
