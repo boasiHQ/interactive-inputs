@@ -14,8 +14,17 @@ It was created to solve the problem of GitHub Actions needing a core feature suc
 | name | description | required | default |
 | --- | --- | --- | --- |
 | `title` | <p>The title of the interactive inputs form</p> | `false` | `""` |
-| `interactive` | <p>The representation (in yaml) of fields to be displayed. See https://github.com/boasihq/interactive-inputs?tab=readme-ov-file#input-fields-types for more information</p> | `true` | `fields:   - label: random-string     properties:       display: Enter a random string       type: text       description: A random string up to 20 characters long       maxLength: 20       required: false   - label: choice     properties:       display: Select a monitoring tool       type: select       description: Available options to chose from       choices: ["datadog", "sentry", "grafana"]       required: true ` |
+| `interactive` | <p>The representation (in yaml) of fields to be displayed</p> | `true` | `fields:   - label: random-string     properties:       display: Enter a random string       type: text       description: A random string up to 20 characters long       maxLength: 20       required: false   - label: choice     properties:       display: Select a monitoring tool       type: select       description: Available options to chose from       choices: ["datadog", "sentry", "grafana"]       required: true ` |
 | `timeout` | <p>The timeout in seconds for the interactive inputs form</p> | `false` | `300` |
+| `ngrok-authtoken` | <p>The authtoken for ngrok used to expose the interactive inputs form</p> | `true` | `""` |
+| `github-token` | <p>The token used to authenticate with GitHub API</p> | `true` | `${{ github.token }}` |
+| `notifier-slack-enabled` | <p>Whether to send a notification to Slack about the status of the interative inputs form</p> | `true` | `false` |
+| `notifier-slack-token` | <p>The token used to authenticate with Slack API</p> | `true` | `xoxb-secret-token` |
+| `notifier-slack-channel` | <p>The channel to send the notification to</p> | `true` | `#notificaitons` |
+| `notifier-slack-bot` | <p>The name of the bot to send the notification as</p> | `false` | `""` |
+| `notifier-discord-enabled` | <p>Whether to send a notification to Discord about the status of the interative inputs form</p> | `true` | `false` |
+| `notifier-discord-webhook` | <p>The webhook URL used to send the notification(s) to Discord</p> | `true` | `secret-webhook` |
+| `notifier-discord-username` | <p>The username to send the notification(s) as</p> | `false` | `""` |
 <!-- action-docs-inputs source="action.yml" -->
 
 To see the full list of supported input fields for the `interactive` input, see the [Input Fields Types](#input-fields-types) section below.
@@ -34,10 +43,44 @@ Here are some screenshots of the Interactive Input action... in action 👀😔:
 To get started, there are three main steps:
 
 1. Sign up to NGROK and get your auth token if you do not already have one by [**clicking here**](https://dashboard.ngrok.com/signup)
-2. Add this action `boasihq/interactive-inputs@v1.0.0` to your workflow file. See [the example below](#example) for more information.
+2. Add this action `boasihq/interactive-inputs@v2.0.0` to your workflow file. See [the example below](#example) for more information.
 3. Use the predictable output variables from your interactive input portal to create dynamic workflows.
 
 > Note, this action requires an ARM64 or AMD64 (x86) runner to run i.e. `ubuntu-latest`
+
+### Sending notifications to Slack/ Discord
+
+To send notifications to Slack/ Discord, you will need to do the  following:
+
+1) Create your desired [Slack](#creating-a-slack-integration)/[Discord](#creating-a-discord-integration) integration token or webhook respectively.
+2) Ensure you've enabled `notifier-slack-enabled` or `notifier-discord-enabled` respectively.
+3) Pass the token or webhook to the action with `notifier-slack-token` or `notifier-discord-webhook`, respectively.
+
+
+#### Creating a Slack integration
+
+To create a Slack integration, follow these steps:
+1. Go to the Slack API website at https://api.slack.com/apps.
+2. Click on the "Create New App" button.
+3. Enter a name for your app and select the workspace where you want to create the integration.
+4. Click on the "Create App" button.
+5. In the app's settings, navigate to the "OAuth & Permissions" section.
+6. Under the "Scopes", add the following permissions:
+   - `chat:write`
+   - `chat:write. customise`
+7. Click on the "Install App to Workspace" button.
+8. Follow the instructions to install the app in your workspace.
+9. Once the installation is complete, you will receive a "Bot User OAuth Access Token".
+10. Copy the token and use it in your GitHub Action declaration (We recommended saving it as a secret in your GitHub repository/organisation).
+
+#### Creating a Discord integration
+To create a Discord integration, follow these steps:
+1. Go to the Discord app or web client at https://discord.com/channels/@me.
+2. Right-click on the server you want to create the integration, followed by "Server Settings" and "Integrations".
+3. Click on the "Webhook".
+4. Click on the "New Webhook" button.
+5. Select the new webhook and change the "Name" and target "Channel".
+6. Press the "Copy Webhook URL" button and use it in your GitHub Action declaration (We recommended saving it as a secret in your GitHub repository/organisation).
 
 ## Example
 
@@ -56,14 +99,17 @@ jobs:
     permissions:
       contents: write
       actions: write
-    env:
-      NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@v1.0.0
+        uses: boasihq/interactive-inputs@v2.0.0
         with:
+          ngrok-authtoken: ${{ secrets.NGROK_AUTHTOKEN }}
+          notifier-slack-enabled: "false"
+          notifier-slack-channel: "#notificaitons"
+          notifier-slack-token: ${{ secrets.SLACK_TOKEN }}
+          notifier-discord-enabled: "false"
+          notifier-discord-webhook: ${{ secrets.DISCORD_WEBHOOK }}
           timeout: 160
           title: 'A batch of 10 feature flags have been added to be deployed. Would you like to proceed?'
           interactive: |
@@ -87,6 +133,7 @@ jobs:
                   type: textarea
                   description: Additional notes on why this decision has been made are to be added to the audit trail.
 
+
       - name: Display Outputs
         shell: bash
         run: |
@@ -100,9 +147,10 @@ jobs:
 
 When using this action, here are a few key points to note:
 
+- To enable the external notifications, you will need to set the `notifier-slack-enabled` or `notifier-discord-enabled` property to `true` in the `with` object. Follow the [**Creating a Slack integration**](#creating-a-slack-integration) or [**Creating a Discord integration**](#creating-a-discord-integration) sections above for more information.
 - The portal will display fields in the order defined in the `fields` array.
 - The `label` property is used to identify the input field and its corresponding output. For example, the `label` property in the `fields` array for **Continue to roll out?** is `continue-roll-out`. This means that the output will be stored in a variable called `continue-roll-out`, which can be accessed using the syntax `${{ steps.interactive-inputs.outputs.continue-roll-out }}`.
-- The env `NGROK_AUTHTOKEN` and `GITHUB_TOKEN` authenticate the request to the Ngrok API and the GitHub API, respectively. Both are needed to be set in the workflow file.
+- The env `ngrok-authtoken` input is used to open the Ngrok tunnel, which is used to give access to your runner-hosted portal. It is needed to be set in the workflow file.
   - Signing up for NGROK is free and quick; it can be done [here](https://dashboard.ngrok.com/signup).
 - There are various [types of input fields](#input-fields-types) that can be used, [**vist the input fields types**](#input-fields-types) in this README for more information.
 - The `timeout` property sets the timeout for the interactive input. The workflow will fail if the user does not respond within the timeout period.
@@ -116,7 +164,7 @@ The input fields shape the user interface of the interactive input. The input fi
       ...
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@v1.0.0
+        uses: boasihq/interactive-inputs@v2.0.0
         with:
           ...
           interactive: |

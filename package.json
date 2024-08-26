@@ -1,6 +1,6 @@
 {
   "name": "interactive-inputs",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "main": "invoke-binary.js",
   "url": "https://interactiveinputs.com",
   "author": "Leon Silcott <leon@boasi.io>",

@@ -5,11 +5,10 @@ inputs:
   title:
     description: 'The title of the interactive inputs form'
     required: false
-    type: string
+
   interactive:
-    description: 'The representation (in yaml) of fields to be displayed. See https://github.com/boasiHQ/interactive-inputs?tab=readme-ov-file#input-fields-types for more information'
+    description: 'The representation (in yaml) of fields to be displayed'
     required: true
-    type: string
     default: |
       fields:
         - label: random-string
@@ -26,11 +25,53 @@ inputs:
             description: Available options to chose from
             choices: ["datadog", "sentry", "grafana"]
             required: true
+
   timeout:
     description: 'The timeout in seconds for the interactive inputs form'
     required: false
-    type: number
-    default: 300
+    default: "300"
+
+  ngrok-authtoken:
+    description: 'The authtoken for ngrok used to expose the interactive inputs form'
+    required: true
+  
+  github-token:
+    description: 'The token used to authenticate with GitHub API'
+    required: true
+    default: ${{ github.token }}
+  
+  notifier-slack-enabled:
+    description: 'Whether to send a notification to Slack about the status of the interative inputs form'
+    default: "false"
+    required: true
+
+  notifier-slack-token:
+    description: 'The token used to authenticate with Slack API'
+    default: "xoxb-secret-token"
+    required: true
+
+  notifier-slack-channel:
+    description: 'The channel to send the notification to'
+    required: true
+    default: "#notificaitons"
+
+  notifier-slack-bot:
+    description: 'The name of the bot to send the notification as'
+    required: false
+
+  notifier-discord-enabled:
+    description: 'Whether to send a notification to Discord about the status of the interative inputs form'
+    default: "false"
+    required: true
+
+  notifier-discord-webhook:
+    description: 'The webhook URL used to send the notification(s) to Discord'
+    required: true
+    default: "secret-webhook"
+
+  notifier-discord-username:
+    description: 'The username to send the notification(s) as'
+    required: false
 
 
 runs:
