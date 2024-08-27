@@ -49,6 +49,7 @@ env \
       display: Favourite Car
       type: select
       description: The name of your favourite car
+      disableAutoCopySelection: false
       choices:
         - Ford
         - Toyota
@@ -64,6 +65,7 @@ env \
     properties:
       display: What are your favourite colours
       type: multiselect
+      disableAutoCopySelection: true
       choices: 
         ["Red", "Green", "Blue", "Orange", "Purple", "Pink", "Yellow"]
       required: true
@@ -140,6 +142,7 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
       display: Favourite Car
       type: select
       description: The name of your favourite car
+      disableAutoCopySelection: false
       choices:
         - Ford
         - Toyota
@@ -155,6 +158,7 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
     properties:
       display: What are your favourite colours
       type: multiselect
+      disableAutoCopySelection: true
       choices: 
         ["Red", "Green", "Blue", "Orange", "Purple", "Pink", "Yellow"]
       required: true
@@ -178,6 +182,7 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
   go run main.go
 ```
 
+> To skip the config parse, set the `IAIP_SKIP_CONFIG_PARSE` environment variable to `1`
 
 ### Formatting code
 
