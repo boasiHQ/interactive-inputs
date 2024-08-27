@@ -42,18 +42,20 @@ type Field struct {
 // Choices is a list of options to display for the field if the Type is "options".
 // Required indicates whether the field must be filled out.
 // MaxLength is the maximum length of the field's value.
+// DisableAutoCopySelection is whether the field should stop automatically coping the selected option to the clipboard (valid fields: select, multiselect).
 type FieldProperties struct {
-	Display      string   `yaml:"display"`
-	Type         string   `yaml:"type"`
-	Description  string   `yaml:"description"`
-	Choices      []string `yaml:"choices"`
-	Required     bool     `yaml:"required"`
-	MaxLength    int      `yaml:"maxLength"`
-	Placeholder  string   `yaml:"placeholder"`
-	NumberMin    int      `yaml:"minNumber"`
-	NumberMax    int      `yaml:"maxNumber"`
-	DefaultValue string   `yaml:"defaultValue"`
-	ReadOnly     bool     `yaml:"readOnly"`
+	Display                  string   `yaml:"display"`
+	Type                     string   `yaml:"type"`
+	Description              string   `yaml:"description"`
+	Choices                  []string `yaml:"choices"`
+	Required                 bool     `yaml:"required"`
+	MaxLength                int      `yaml:"maxLength"`
+	Placeholder              string   `yaml:"placeholder"`
+	NumberMin                int      `yaml:"minNumber"`
+	NumberMax                int      `yaml:"maxNumber"`
+	DefaultValue             string   `yaml:"defaultValue"`
+	ReadOnly                 bool     `yaml:"readOnly"`
+	DisableAutoCopySelection bool     `yaml:"disableAutoCopySelection"`
 }
 
 // MarshalStringIntoValidFieldsStruct takes a YAML-formatted string representation of a Fields
