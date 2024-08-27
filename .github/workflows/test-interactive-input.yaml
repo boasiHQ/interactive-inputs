@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@ii-i1-allow-users-to-more-easily-copy-target-value-for-select-multiselect-field-types
+        uses: boasihq/interactive-inputs@main
         with:
           ngrok-authtoken: ${{ secrets.NGROK_AUTHTOKEN }}
           notifier-slack-enabled: "false"
