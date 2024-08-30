@@ -23,6 +23,7 @@ If you would like to contribute, fix a bug, or play around with this action loca
 | `ngrok-authtoken` | <p>The authtoken for ngrok used to expose the interactive inputs form</p> | `true` | `""` |
 | `github-token` | <p>The token used to authenticate with GitHub API</p> | `true` | `${{ github.token }}` |
 | `notifier-slack-enabled` | <p>Whether to send a notification to Slack about the status of the interative inputs form</p> | `true` | `false` |
+| `notifier-slack-thread-ts` | <p>The timestamp of the message to reply to in the thread</p> | `false` | `""` |
 | `notifier-slack-token` | <p>The token used to authenticate with Slack API</p> | `true` | `xoxb-secret-token` |
 | `notifier-slack-channel` | <p>The channel to send the notification to</p> | `true` | `#notificaitons` |
 | `notifier-slack-bot` | <p>The name of the bot to send the notification as</p> | `false` | `""` |

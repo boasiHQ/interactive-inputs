@@ -45,6 +45,10 @@ inputs:
     default: "false"
     required: true
 
+  notifier-slack-thread-ts:
+    description: 'The timestamp of the message to reply to in the thread'
+    required: false
+
   notifier-slack-token:
     description: 'The token used to authenticate with Slack API'
     default: "xoxb-secret-token"

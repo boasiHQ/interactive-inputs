@@ -30,6 +30,9 @@ type NewSlackNotifierRequest struct {
 
 	// VerifificationEndpoint is the endpoint to verify the token
 	VerificationEndpoint string
+
+	// ThreadTs is the timestamp of the message to reply to in the thread
+	ThreadTs string
 }
 
 // NewSlackNotifier returns a new instance of a Slack Notifier
@@ -53,6 +56,7 @@ func NewSlackNotifier(r *NewSlackNotifierRequest) Notifier {
 		botName:              botName,
 		action:               r.ActionPkg,
 		verificationEndpoint: verificationEndpoint,
+		threadTs:             r.ThreadTs,
 	}
 }
 
@@ -76,12 +80,21 @@ type SlackNotifier struct {
 
 	// verificationEndpoint is the endpoint to verify the auth
 	verificationEndpoint string
+
+	// threadTs is the timestamp of the message to reply to in the thread
+	threadTs string
 }
 
 // Notify sends a notification to the Slack channel
 func (n *SlackNotifier) Notify(title, message string) (string, error) {
 
 	var notificationResponse SlackChatPostMessageResponse
+	var slackPostChatMessageUrl string = "https://slack.com/api/chat.postMessage"
+
+	// Check if thread ts provided
+	if n.threadTs != "" {
+		slackPostChatMessageUrl += fmt.Sprintf(`?thread_ts=%s`, n.threadTs)
+	}
 
 	// Shape the message to be sent
 	renderedMessage, err := n.renderStandardSlackNofityMessage(title, message)
@@ -111,7 +124,7 @@ func (n *SlackNotifier) Notify(title, message string) (string, error) {
 	requestBody := bytes.NewBuffer(notificationMessageBytes)
 
 	// handle request to endpoint
-	resp, err := http.NewRequest(http.MethodPost, "https://slack.com/api/chat.postMessage", requestBody)
+	resp, err := http.NewRequest(http.MethodPost, slackPostChatMessageUrl, requestBody)
 	if err != nil {
 		n.action.Errorf("Error on response.\nError: %v", err)
 
@@ -212,12 +225,11 @@ func (n *SlackNotifier) renderStandardSlackNofityMessage(title, message string) 
 
 	defaultNotifyMessageFmt := "*`User Input Required`*" + `
 
-Github user %s has kicked off a workflow that requires runtime input(s)%s _You can find out more by visiting the job at %s _.
+Github user %s has kicked off a workflow that requires runtime input(s)%s 
 
 %s
 
-
-> _Powered by *<https://interactiveinputs.com/|Interactive Inputs>*_`
+> For more context, <%s|click here to go to the GitHub Action workflow run>`
 
 	// build out url for action
 	repoOwner, repoName := actionCtx.Repo()
@@ -228,5 +240,5 @@ Github user %s has kicked off a workflow that requires runtime input(s)%s _You c
 		actionCtx.RunID,
 	)
 
-	return fmt.Sprintf(defaultNotifyMessageFmt, actionCtx.Actor, optionalSentence, additionalContext, message), nil
+	return fmt.Sprintf(defaultNotifyMessageFmt, actionCtx.Actor, optionalSentence, message, additionalContext), nil
 }

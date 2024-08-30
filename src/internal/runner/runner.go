@@ -44,6 +44,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 			Channel:   cfg.NotifierSlackChannel,
 			BotName:   cfg.NotifierSlackBotName,
 			ActionPkg: cfg.Action,
+			ThreadTs:  cfg.NotifierSlackThreadTs,
 		})
 
 		verifiedSlackNotifierErr := slackNotifier.Verify()

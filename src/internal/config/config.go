@@ -2,6 +2,7 @@ package config
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/boasihq/interactive-inputs/internal/errors"
 	"github.com/boasihq/interactive-inputs/internal/fields"
@@ -27,6 +28,9 @@ type Config struct {
 	// NotifierSlackToken is the token that will be used to make the Slack request
 	// to send the message(s)
 	NotifierSlackToken string
+
+	// NotifierSlackThreadTs is the timestamp of the message to reply to in the thread
+	NotifierSlackThreadTs string
 
 	// NotifierSlackChannel is the channel that message(s) will be sent to
 	NotifierSlackChannel string
@@ -121,6 +125,7 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 	var notifierSlackToken string = "xoxb-secret-token"
 	var notifierSlackChannel string = "#notificatins"
 	var notifierSlackBotName string
+	var notifierSlackThreadTs string
 
 	notifierSlackEnabledInput := action.GetInput("notifier-slack-enabled") == "true"
 	if notifierSlackEnabledInput {
@@ -133,6 +138,7 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 		notifierSlackToken = notifierSlackTokenInput
 		notifierSlackChannel = action.GetInput("notifier-slack-channel")
 		notifierSlackBotName = action.GetInput("notifier-slack-bot")
+		notifierSlackThreadTs = strings.TrimSpace(action.GetInput("notifier-slack-thread-ts"))
 	}
 
 	// handle input for fetching discord notifier
@@ -166,10 +172,11 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 		NgrokAuthtoken: ngrokAuthtokenInput,
 		GithubToken:    githubTokenInput,
 
-		NotifierSlackEnabled: notifierSlackEnabledInput,
-		NotifierSlackToken:   notifierSlackToken,
-		NotifierSlackChannel: notifierSlackChannel,
-		NotifierSlackBotName: notifierSlackBotName,
+		NotifierSlackEnabled:  notifierSlackEnabledInput,
+		NotifierSlackToken:    notifierSlackToken,
+		NotifierSlackChannel:  notifierSlackChannel,
+		NotifierSlackBotName:  notifierSlackBotName,
+		NotifierSlackThreadTs: notifierSlackThreadTs,
 
 		NotifierDiscordEnabled:          notifierDiscordEnabledInput,
 		NotifierDiscordWebhook:          notifierDiscordWebhook,
