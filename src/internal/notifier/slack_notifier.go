@@ -91,11 +91,6 @@ func (n *SlackNotifier) Notify(title, message string) (string, error) {
 	var notificationResponse SlackChatPostMessageResponse
 	var slackPostChatMessageUrl string = "https://slack.com/api/chat.postMessage"
 
-	// Check if thread ts provided
-	if n.threadTs != "" {
-		slackPostChatMessageUrl += fmt.Sprintf(`?thread_ts=%s`, n.threadTs)
-	}
-
 	// Shape the message to be sent
 	renderedMessage, err := n.renderStandardSlackNofityMessage(title, message)
 	if err != nil {
@@ -116,6 +111,12 @@ func (n *SlackNotifier) Notify(title, message string) (string, error) {
 			},
 		},
 	}
+
+	// Check if thread ts provided
+	if n.threadTs != "" {
+		notificationMessage.ThreadTs = n.threadTs
+	}
+
 	notificationMessageBytes, err := json.Marshal(notificationMessage)
 	if err != nil {
 		n.action.Errorf("An error occured while shaping notification message. Message: %s", message)
