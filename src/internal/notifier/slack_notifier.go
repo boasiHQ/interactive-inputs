@@ -229,6 +229,7 @@ func (n *SlackNotifier) renderStandardSlackNofityMessage(title, message string) 
 %s<%s|*Go to run*>
 *Initiator:* %s
 
+
 %s
 `
 
