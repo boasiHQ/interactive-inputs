@@ -226,7 +226,7 @@ func (n *SlackNotifier) renderStandardSlackNofityMessage(title, message string) 
 
 	defaultNotifyMessageFmt := "*`User Input Required`*" + `
 
-%s<%s|Go to run>
+%s<%s|*Go to run*>
 *Initiator:* %s
 
 %s
