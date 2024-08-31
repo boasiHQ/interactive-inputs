@@ -218,19 +218,19 @@ func (n *SlackNotifier) renderStandardSlackNofityMessage(title, message string) 
 		return "", err
 	}
 
-	var optionalSentence string = "."
+	var optionalSentence string = ""
 
 	if title != "" {
-		optionalSentence = fmt.Sprintf(" - _`\"%s\"`_.", title)
+		optionalSentence = fmt.Sprintf("*Title:* _`\"%s\"`_ | ", title)
 	}
 
 	defaultNotifyMessageFmt := "*`User Input Required`*" + `
 
-Github user %s has kicked off a workflow that requires runtime input(s)%s 
+%s<%s|Go to run>
+*Initiator:* %s
 
 %s
-
-> For more context, <%s|click here to go to the GitHub Action workflow run>`
+`
 
 	// build out url for action
 	repoOwner, repoName := actionCtx.Repo()
@@ -241,5 +241,5 @@ Github user %s has kicked off a workflow that requires runtime input(s)%s
 		actionCtx.RunID,
 	)
 
-	return fmt.Sprintf(defaultNotifyMessageFmt, actionCtx.Actor, optionalSentence, message, additionalContext), nil
+	return fmt.Sprintf(defaultNotifyMessageFmt, optionalSentence, additionalContext, actionCtx.Actor, message), nil
 }

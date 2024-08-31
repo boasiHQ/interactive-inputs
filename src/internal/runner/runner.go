@@ -113,7 +113,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 		cfg.Action.Noticef(serverInitMessage)
 
 		if slackNotifier.Enabled() {
-			_, err := slackNotifier.Notify(cfg.Title, serverInitMessage)
+			_, err := slackNotifier.Notify(cfg.Title, fmt.Sprintf("<%s|*Enter requested input*>", ln.URL()))
 			if err != nil {
 				cfg.Action.Errorf("Slack Notifier Notification Failed: %v", err)
 				return err
