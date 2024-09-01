@@ -62,6 +62,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 			WebhookUrl:       cfg.NotifierDiscordWebhook,
 			UsernameOverride: cfg.NotifierDiscordUsernameOverride,
 			ActionPkg:        cfg.Action,
+			ThreadId:         cfg.NotifierDiscordThreadId,
 		})
 
 		verifiedDiscordNotifierErr := discordNotifier.Verify()
@@ -96,6 +97,9 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 	/// Server
 	serverDone := make(chan error, 1)
 	serverInitMessageTmpl := "Your Interactive Inputs portal is reachable at: %s"
+	notifierSlackEnterInputMessageTmpl := "<%s|*Enter required input*>"
+	notifierDiscordEnterInputMessageTmpl := "[**Enter required input**](%s)"
+	universalNotifierFailedToSelfHost := "Failed to start the self-hosting of the portal: %v"
 
 	// TODO: Add a flag to enable/disable the ngrok tunnel respsective
 	// of whether the action is running locally or not
@@ -113,7 +117,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 		cfg.Action.Noticef(serverInitMessage)
 
 		if slackNotifier.Enabled() {
-			_, err := slackNotifier.Notify(cfg.Title, fmt.Sprintf("<%s|*Enter required input*>", ln.URL()))
+			_, err := slackNotifier.Notify(cfg.Title, fmt.Sprintf(notifierSlackEnterInputMessageTmpl, ln.URL()))
 			if err != nil {
 				cfg.Action.Errorf("Slack Notifier Notification Failed: %v", err)
 				return err
@@ -121,7 +125,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 		}
 
 		if discordNotifier.Enabled() {
-			_, err := discordNotifier.Notify(cfg.Title, serverInitMessage)
+			_, err := discordNotifier.Notify(cfg.Title, fmt.Sprintf(notifierDiscordEnterInputMessageTmpl, ln.URL()))
 			if err != nil {
 				cfg.Action.Errorf("Discord Notifier Notification Failed: %v", err)
 				return err
@@ -131,7 +135,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 		go func() {
 			// server logic
 			if err := http.Serve(ln, r); err != nil {
-				serverErrorMessage := fmt.Sprintf("Unable to start server: %v", err)
+				serverErrorMessage := fmt.Sprintf(universalNotifierFailedToSelfHost, err)
 
 				cfg.Action.Errorf(serverErrorMessage)
 				if slackNotifier.Enabled() {
@@ -156,12 +160,12 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 	} else {
 		localPort := ":8080"
 		server := &http.Server{Addr: localPort, Handler: r}
-
-		serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, fmt.Sprintf("http://localhost%s", localPort))
+		completeLocalUrl := fmt.Sprintf("http://localhost%s", localPort)
+		serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, completeLocalUrl)
 
 		cfg.Action.Noticef(serverInitMessage)
 		if slackNotifier.Enabled() {
-			_, err := slackNotifier.Notify(cfg.Title, serverInitMessage)
+			_, err := slackNotifier.Notify(cfg.Title, fmt.Sprintf(notifierSlackEnterInputMessageTmpl, completeLocalUrl))
 			if err != nil {
 				cfg.Action.Errorf("Slack Notifier Notification Failed: %v", err)
 				return err
@@ -169,7 +173,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 		}
 
 		if discordNotifier.Enabled() {
-			_, err := discordNotifier.Notify(cfg.Title, serverInitMessage)
+			_, err := discordNotifier.Notify(cfg.Title, fmt.Sprintf(notifierDiscordEnterInputMessageTmpl, completeLocalUrl))
 			if err != nil {
 				cfg.Action.Errorf("Discord Notifier Notification Failed: %v", err)
 				return err
@@ -179,7 +183,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 		go func() {
 			// server logic
 			if err := server.ListenAndServe(); err != nil {
-				serverErrorMessage := fmt.Sprintf("Unable to start server: %v", err)
+				serverErrorMessage := fmt.Sprintf(universalNotifierFailedToSelfHost, err)
 
 				cfg.Action.Errorf(serverErrorMessage)
 				if slackNotifier.Enabled() {
@@ -206,11 +210,18 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 	case err := <-serverDone:
 		return err
 	case <-ctx.Done():
-		// TODO: Update this so that it calls the cancel workflow
-
 		// Timeout occurred
 		ctxCancel() // Ensure all resources are cleaned up
-		return ctx.Err()
+
+		ctxErr := ctx.Err()
+
+		// Print nicer timeout message
+		if ctxErr != nil && ctxErr.Error() == "context deadline exceeded" {
+			//nolint:go-staticcheck
+			return fmt.Errorf("Your session has expired (timed out) due to inactivity for %d seconds", cfg.Timeout)
+		}
+
+		return ctxErr
 	}
 
 }

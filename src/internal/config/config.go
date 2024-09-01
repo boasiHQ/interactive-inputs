@@ -43,6 +43,10 @@ type Config struct {
 	// is enabled or not
 	NotifierDiscordEnabled bool
 
+	// NotifierDiscordThreadId is the ID of the Discord thread the message should be sent to
+	// (as a threaded message)
+	NotifierDiscordThreadId string
+
 	// NotifierDiscordWebhook is the webhook that will be used to make the Discord request
 	// to send the message(s)
 	NotifierDiscordWebhook string
@@ -144,6 +148,7 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 	// handle input for fetching discord notifier
 	var notifierDiscordWebhook string = "secret-webhook"
 	var notifierDiscordUsernameOverride string
+	var notifierDiscordThreadId string
 
 	notifierDiscordEnabledInput := action.GetInput("notifier-discord-enabled") == "true"
 	if notifierDiscordEnabledInput {
@@ -156,6 +161,7 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 
 		notifierDiscordWebhook = notifierDiscordWebhookInput
 		notifierDiscordUsernameOverride = action.GetInput("notifier-discord-username")
+		notifierDiscordThreadId = strings.TrimSpace(action.GetInput("notifier-discord-thread-id"))
 	}
 
 	// handle masking of sensitive data
@@ -181,6 +187,7 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 		NotifierDiscordEnabled:          notifierDiscordEnabledInput,
 		NotifierDiscordWebhook:          notifierDiscordWebhook,
 		NotifierDiscordUsernameOverride: notifierDiscordUsernameOverride,
+		NotifierDiscordThreadId:         notifierDiscordThreadId,
 
 		Action: action,
 	}

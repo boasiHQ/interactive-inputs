@@ -28,6 +28,7 @@ If you would like to contribute, fix a bug, or play around with this action loca
 | `notifier-slack-channel` | <p>The channel to send the notification to</p> | `true` | `#notificaitons` |
 | `notifier-slack-bot` | <p>The name of the bot to send the notification as</p> | `false` | `""` |
 | `notifier-discord-enabled` | <p>Whether to send a notification to Discord about the status of the interative inputs form</p> | `true` | `false` |
+| `notifier-discord-thread-id` | <p>The ID of the Discord thread the message should be sent to</p> | `false` | `""` |
 | `notifier-discord-webhook` | <p>The webhook URL used to send the notification(s) to Discord</p> | `true` | `secret-webhook` |
 | `notifier-discord-username` | <p>The username to send the notification(s) as</p> | `false` | `""` |
 <!-- action-docs-inputs source="action.yml" -->
@@ -42,6 +43,9 @@ Here are some screenshots of the Interactive Input action... in action 👀😔:
 <img src="./assets/interactive-inputs-portal-page-1.png" alt="Interactive Input Portal - Rendered" width="400"/>
 <img src="./assets/interactive-inputs-portal-page-2.png" alt="Interactive Input Portal - Submitted" width="400"/>
 <img src="./assets/github-action-after-run-with-outputs.png" alt="GitHub Action - Example Output & Log messages from Interactive Inputs" width="400"/>
+<img src="./assets/notifier-slack-message.png" alt="Integration - Slack" width="400"/>
+<img src="./assets/notifier-discord-message.png" alt="Integration - Discord" width="400"/>
+
 
 ## Getting Started
 
@@ -64,6 +68,8 @@ To send notifications to Slack/ Discord, you will need to do the  following:
 
 #### Creating a Slack integration
 
+<img src="./assets/notifier-slack-message.png" alt="Integration - Slack" width="400"/>
+
 To create a Slack integration, follow these steps:
 1. Go to the Slack API website at https://api.slack.com/apps.
 2. Click on the "Create New App" button.
@@ -78,7 +84,14 @@ To create a Slack integration, follow these steps:
 9. Once the installation is complete, you will receive a "Bot User OAuth Access Token".
 10. Copy the token and use it in your GitHub Action declaration (We recommended saving it as a secret in your GitHub repository/organisation).
 
+> Note: If you want to send/create a notification to a specific thread, you will need to pass the thread timestamp to the action with the `notifier-slack-thread-ts` input.
+>
+> <img src="./assets/notifier-slack-message-to-thread.png" alt="Integration - Discord" width="400"/>
+
 #### Creating a Discord integration
+
+<img src="./assets/notifier-discord-message.png" alt="Integration - Discord" width="400"/>
+
 To create a Discord integration, follow these steps:
 1. Go to the Discord app or web client at https://discord.com/channels/@me.
 2. Right-click on the server you want to create the integration, followed by "Server Settings" and "Integrations".
@@ -86,6 +99,10 @@ To create a Discord integration, follow these steps:
 4. Click on the "New Webhook" button.
 5. Select the new webhook and change the "Name" and target "Channel".
 6. Press the "Copy Webhook URL" button and use it in your GitHub Action declaration (We recommended saving it as a secret in your GitHub repository/organisation).
+
+> Note: If you want to send a notification to a specific thread, you will need to pass the thread ID to the action with the `notifier-discord-thread-id input
+>
+> <img src="./assets/notifier-discord-message-to-thread.png" alt="Integration - Discord" width="400"/>
 
 ## Example
 
@@ -113,8 +130,10 @@ jobs:
           notifier-slack-enabled: "false"
           notifier-slack-channel: "#notificaitons"
           notifier-slack-token: ${{ secrets.SLACK_TOKEN }}
+          notifier-slack-thread-ts: ""
           notifier-discord-enabled: "false"
           notifier-discord-webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          notifier-discord-thread-id: ""
           timeout: 160
           title: 'A batch of 10 feature flags have been added to be deployed. Would you like to proceed?'
           interactive: |
@@ -154,6 +173,7 @@ jobs:
 When using this action, here are a few key points to note:
 
 - To enable the external notifications, you will need to set the `notifier-slack-enabled` or `notifier-discord-enabled` property to `true` in the `with` object. Follow the [**Creating a Slack integration**](#creating-a-slack-integration) or [**Creating a Discord integration**](#creating-a-discord-integration) sections above for more information.
+  - To send a message to a thread, you will need to set the `notifier-slack-thread-ts` or `notifier-discord-thread-id` property to the thread timestamp or thread ID, respectively.
 - The portal will display fields in the order defined in the `fields` array.
 - The `label` property is used to identify the input field and its corresponding output. For example, the `label` property in the `fields` array for **Continue to roll out?** is `continue-roll-out`. This means that the output will be stored in a variable called `continue-roll-out`, which can be accessed using the syntax `${{ steps.interactive-inputs.outputs.continue-roll-out }}`.
 - The env `ngrok-authtoken` input is used to open the Ngrok tunnel, which is used to give access to your runner-hosted portal. It is needed to be set in the workflow file.
