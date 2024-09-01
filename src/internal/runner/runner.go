@@ -99,7 +99,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 	serverInitMessageTmpl := "Your Interactive Inputs portal is reachable at: %s"
 	notifierSlackEnterInputMessageTmpl := "<%s|*Enter required input*>"
 	notifierDiscordEnterInputMessageTmpl := "[**Enter required input**](%s)"
-	universalNotifierFailedToSelfHost := "Failed to start the self-hosting of the portal: %v"
+	universalNotifierFailedToSelfHost := "A failure has occurred while starting/running your self-hosted portal: %v"
 
 	// TODO: Add a flag to enable/disable the ngrok tunnel respsective
 	// of whether the action is running locally or not
