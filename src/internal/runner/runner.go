@@ -208,20 +208,24 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 
 	select {
 	case err := <-serverDone:
-		return err
+		return handlePrettierTimeoutErrorMessage(err, cfg.Timeout)
 	case <-ctx.Done():
 		// Timeout occurred
 		ctxCancel() // Ensure all resources are cleaned up
 
-		ctxErr := ctx.Err()
-
-		// Print nicer timeout message
-		if ctxErr != nil && ctxErr.Error() == "context deadline exceeded" {
-			//nolint:go-staticcheck
-			return fmt.Errorf("Your session has expired (timed out) due to inactivity for %d seconds", cfg.Timeout)
-		}
-
-		return ctxErr
+		return handlePrettierTimeoutErrorMessage(ctx.Err(), cfg.Timeout)
 	}
 
+}
+
+// handlePrettierTimeoutErrorMessage is a helper function that prints a nicer error message
+// when the context deadline is exceeded. Otherwise, it returns the original error.
+func handlePrettierTimeoutErrorMessage(err error, timeout int) error {
+	// Print nicer timeout message
+	if err != nil && err.Error() == "context deadline exceeded" {
+		//nolint:go-staticcheck
+		return fmt.Errorf("Your session has expired (timed out) due to inactivity for %d seconds", timeout)
+	}
+
+	return err
 }
