@@ -2,6 +2,8 @@ name: '[Example] Interactive Inputs'
 
 on:
   push:
+    branches:
+      - main
 
 jobs:
   interactive-inputs:
