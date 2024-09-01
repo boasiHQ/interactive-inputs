@@ -12,6 +12,7 @@ To test this action locally, you can run the following command:
 env \
   'GITHUB_API_URL=https://api.github.com' \
   'GITHUB_REPOSITORY=blend/repo-that-uses-an-action' \
+  "GITHUB_ACTOR=$(whoami)" \
   "GITHUB_WORKSPACE=$(pwd)" \
   "INPUT_TITLE=Start something exciting, dynamically..." \
   'INPUT_INTERACTIVE=fields:
@@ -79,9 +80,11 @@ env \
   'INPUT_NOTIFIER-SLACK-TOKEN=xoxb-secret-token' \
   'INPUT_NOTIFIER-SLACK-CHANNEL=#random' \
   'INPUT_NOTIFIER-SLACK-BOT=' \
+  'INPUT_NOTIFIER-SLACK-THREAD-TS=' \
   'INPUT_NOTIFIER-DISCORD-ENABLED=false' \
   'INPUT_NOTIFIER-DISCORD-WEBHOOK=secret-webhook' \
   'INPUT_NOTIFIER-DISCORD-USERNAME=' \
+  'INPUT_NOTIFIER-DISCORD-THREAD-ID=' \
   'INPUT_GITHUB-TOKEN=github-secret-token' \
   'INPUT_NGROK-AUTHTOKEN=1234567890' \
   'IAIP_LOCAL_RUN=true' \
@@ -103,6 +106,7 @@ Once installed, run the server
 
 ```sh
 reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
+  "GITHUB_ACTOR=$(whoami)" \
   'GITHUB_API_URL=https://api.github.com' \
   'GITHUB_REPOSITORY=blend/repo-that-uses-an-action' \
   "GITHUB_WORKSPACE=$(pwd)" \
@@ -171,10 +175,11 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
   'INPUT_NOTIFIER-SLACK-ENABLED=false' \
   'INPUT_NOTIFIER-SLACK-TOKEN=xoxb-secret-token' \
   'INPUT_NOTIFIER-SLACK-CHANNEL=#random' \
-  'INPUT_NOTIFIER-SLACK-BOT=' \
+  'INPUT_NOTIFIER-SLACK-THREAD-TS=' \
   'INPUT_NOTIFIER-DISCORD-ENABLED=false' \
   'INPUT_NOTIFIER-DISCORD-WEBHOOK=secret-webhook' \
   'INPUT_NOTIFIER-DISCORD-USERNAME=' \
+  'INPUT_NOTIFIER-DISCORD-THREAD-ID=' \
   'INPUT_GITHUB-TOKEN=github-secret-token' \
   'INPUT_NGROK-AUTHTOKEN=1234567890' \
   'IAIP_LOCAL_RUN=true' \

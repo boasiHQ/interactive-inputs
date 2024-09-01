@@ -45,6 +45,10 @@ inputs:
     default: "false"
     required: true
 
+  notifier-slack-thread-ts:
+    description: 'The timestamp of the message to reply to in the thread'
+    required: false
+
   notifier-slack-token:
     description: 'The token used to authenticate with Slack API'
     default: "xoxb-secret-token"
@@ -63,6 +67,10 @@ inputs:
     description: 'Whether to send a notification to Discord about the status of the interative inputs form'
     default: "false"
     required: true
+  
+  notifier-discord-thread-id:
+    description: 'The ID of the Discord thread the message should be sent to'
+    required: false
 
   notifier-discord-webhook:
     description: 'The webhook URL used to send the notification(s) to Discord'

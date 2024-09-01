@@ -2,6 +2,7 @@ package config
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/boasihq/interactive-inputs/internal/errors"
 	"github.com/boasihq/interactive-inputs/internal/fields"
@@ -28,6 +29,9 @@ type Config struct {
 	// to send the message(s)
 	NotifierSlackToken string
 
+	// NotifierSlackThreadTs is the timestamp of the message to reply to in the thread
+	NotifierSlackThreadTs string
+
 	// NotifierSlackChannel is the channel that message(s) will be sent to
 	NotifierSlackChannel string
 
@@ -38,6 +42,10 @@ type Config struct {
 	// NotifierDiscordEnabled will be used to determine whether the Slack notifier
 	// is enabled or not
 	NotifierDiscordEnabled bool
+
+	// NotifierDiscordThreadId is the ID of the Discord thread the message should be sent to
+	// (as a threaded message)
+	NotifierDiscordThreadId string
 
 	// NotifierDiscordWebhook is the webhook that will be used to make the Discord request
 	// to send the message(s)
@@ -121,6 +129,7 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 	var notifierSlackToken string = "xoxb-secret-token"
 	var notifierSlackChannel string = "#notificatins"
 	var notifierSlackBotName string
+	var notifierSlackThreadTs string
 
 	notifierSlackEnabledInput := action.GetInput("notifier-slack-enabled") == "true"
 	if notifierSlackEnabledInput {
@@ -133,11 +142,13 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 		notifierSlackToken = notifierSlackTokenInput
 		notifierSlackChannel = action.GetInput("notifier-slack-channel")
 		notifierSlackBotName = action.GetInput("notifier-slack-bot")
+		notifierSlackThreadTs = strings.TrimSpace(action.GetInput("notifier-slack-thread-ts"))
 	}
 
 	// handle input for fetching discord notifier
 	var notifierDiscordWebhook string = "secret-webhook"
 	var notifierDiscordUsernameOverride string
+	var notifierDiscordThreadId string
 
 	notifierDiscordEnabledInput := action.GetInput("notifier-discord-enabled") == "true"
 	if notifierDiscordEnabledInput {
@@ -150,6 +161,7 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 
 		notifierDiscordWebhook = notifierDiscordWebhookInput
 		notifierDiscordUsernameOverride = action.GetInput("notifier-discord-username")
+		notifierDiscordThreadId = strings.TrimSpace(action.GetInput("notifier-discord-thread-id"))
 	}
 
 	// handle masking of sensitive data
@@ -166,14 +178,16 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 		NgrokAuthtoken: ngrokAuthtokenInput,
 		GithubToken:    githubTokenInput,
 
-		NotifierSlackEnabled: notifierSlackEnabledInput,
-		NotifierSlackToken:   notifierSlackToken,
-		NotifierSlackChannel: notifierSlackChannel,
-		NotifierSlackBotName: notifierSlackBotName,
+		NotifierSlackEnabled:  notifierSlackEnabledInput,
+		NotifierSlackToken:    notifierSlackToken,
+		NotifierSlackChannel:  notifierSlackChannel,
+		NotifierSlackBotName:  notifierSlackBotName,
+		NotifierSlackThreadTs: notifierSlackThreadTs,
 
 		NotifierDiscordEnabled:          notifierDiscordEnabledInput,
 		NotifierDiscordWebhook:          notifierDiscordWebhook,
 		NotifierDiscordUsernameOverride: notifierDiscordUsernameOverride,
+		NotifierDiscordThreadId:         notifierDiscordThreadId,
 
 		Action: action,
 	}

@@ -28,6 +28,10 @@ type NewDiscordNotifierRequest struct {
 	// VerificationEndpoint is the endpoint override the endpoint
 	// used to verify the token
 	VerificationEndpoint string
+
+	// ThreadId is the ID of the Discord thread the message should be sent to
+	// (as a threaded message)
+	ThreadId string
 }
 
 // NewDiscordNotifier returns a new instance of a discord Notifier
@@ -51,6 +55,7 @@ func NewDiscordNotifier(r *NewDiscordNotifierRequest) Notifier {
 		usernameOverride:     username,
 		action:               r.ActionPkg,
 		verificationEndpoint: verificationEndpoint,
+		threadId:             r.ThreadId,
 	}
 }
 
@@ -71,9 +76,15 @@ type DiscordNotifier struct {
 
 	// verificationEndpoint is the endpoint to verify the auth
 	verificationEndpoint string
+
+	// threadId is the ID of the Discord thread the message should be sent to
+	// (as a threaded message)
+	threadId string
 }
 
 func (n *DiscordNotifier) Notify(title, message string) (string, error) {
+
+	var discordCompleteWebhookUrl string = n.webhookUrl
 
 	// Shape the message to be sent
 	renderedMessage, err := n.renderStandardDiscordNofityMessage(title, message)
@@ -94,8 +105,13 @@ func (n *DiscordNotifier) Notify(title, message string) (string, error) {
 	}
 	requestBody := bytes.NewBuffer(notificationMessageBytes)
 
+	// Check if thread id provided
+	if n.threadId != "" {
+		discordCompleteWebhookUrl = fmt.Sprintf("%s?thread_id=%s", discordCompleteWebhookUrl, n.threadId)
+	}
+
 	// handle request to endpoint
-	resp, err := http.NewRequest(http.MethodPost, n.webhookUrl, requestBody)
+	resp, err := http.NewRequest(http.MethodPost, discordCompleteWebhookUrl, requestBody)
 	if err != nil {
 		n.action.Errorf("Error on response.\nError: %v", err)
 
@@ -181,20 +197,18 @@ func (n *DiscordNotifier) renderStandardDiscordNofityMessage(title, message stri
 		return "", err
 	}
 
-	var optionalSentence string = "."
+	var optionalSentence string = ""
 
 	if title != "" {
-		optionalSentence = fmt.Sprintf(" - *`\"%s\"`*.", title)
+		optionalSentence = fmt.Sprintf("**Title:** *`\"%s\"`* | ", title)
 	}
 
 	defaultNotifyMessageFmt := "**`User Input Required`**" + `
 
-Github user %s has kicked off a workflow that requires runtime input(s)%s *You can find out more by visiting the job at %s*.
+%s[**Go to run**](%s)
+**Initiator:** %s
 
-%s
-
-
-> *Powered by **[Interactive Inputs](https://interactiveinputs.com/)***`
+%s`
 
 	// build out url for action
 	repoOwner, repoName := actionCtx.Repo()
@@ -205,5 +219,5 @@ Github user %s has kicked off a workflow that requires runtime input(s)%s *You c
 		actionCtx.RunID,
 	)
 
-	return fmt.Sprintf(defaultNotifyMessageFmt, actionCtx.Actor, optionalSentence, additionalContext, message), nil
+	return fmt.Sprintf(defaultNotifyMessageFmt, optionalSentence, additionalContext, actionCtx.Actor, message), nil
 }
