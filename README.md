@@ -1,16 +1,16 @@
 # Interactive Inputs
 
-Supercharge your GitHub Action workflows! Adding **Interactive Inputs** allows you to create dynamic workflows that adapt to user input.
+Enhance your GitHub Action workflows with in-workflow/action inputs! This action enables dynamic workflows that can adapt to user input.
 
 ## Summary
 
-This action allows you to create interactive inputs in your GitHub Actions workflows. Interactive inputs are a powerful way to create dynamic workflows that adapt to user input.
+The Interactive inputs action allows you to utilise runtime inputs in your GitHub Actions workflows. This action is a powerful way to create dynamic workflows that can adjust based on user input.
 
-It was created to solve the problem of GitHub Actions needing a core feature such as in-workflow inputs like its counterparts such as Jenkins, where you can make an in-pipeline input that will prompt the user during runtime for input and then use that input in the workflow.
+The action was developed to address the issue of GitHub Actions not having a core feature that is found in other CI tools such as Jenkins - in-pipeline input variables. With this action, you can create an in-pipeline input that will prompt the user for input during runtime, and then use that input in the workflow via a deterministic output.
 
 ### Developing Locally
 
-If you would like to contribute, fix a bug, or play around with this action locally, please follow the instructions outline in the [**getting started** file](./gettting-started.md).
+If you want to contribute, fix a bug, or play around with this action locally, please follow the instructions outlined in the [**getting started** file](./gettting-started.md).
 
 <!-- action-docs-inputs source="action.yml" -->
 ## Inputs
