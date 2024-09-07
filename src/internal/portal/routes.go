@@ -13,6 +13,7 @@ import (
 type portalEventHandler interface {
 	SubmitPortal(w http.ResponseWriter, r *http.Request)
 	CancelPortal(w http.ResponseWriter, r *http.Request)
+	UploadToPortal(w http.ResponseWriter, r *http.Request)
 }
 
 // uiHandler expected methods for valid ui handler
@@ -60,5 +61,6 @@ func AttachRoutes(request *AttachRoutesRequest) {
 	request.Router.HandleFunc("/", request.UiHandler.Home).Methods("GET")
 	request.Router.HandleFunc("/submit", request.PortalEventHandler.SubmitPortal).Methods("POST")
 	request.Router.HandleFunc("/cancel", request.PortalEventHandler.CancelPortal).Methods("POST")
+	request.Router.HandleFunc("/upload", request.PortalEventHandler.UploadToPortal).Methods("POST")
 
 }

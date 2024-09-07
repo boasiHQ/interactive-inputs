@@ -2,6 +2,7 @@ package portal
 
 import (
 	"fmt"
+	"io"
 	"io/fs"
 	"net/http"
 	"os"
@@ -17,6 +18,7 @@ import (
 type actionPkg interface {
 	Context() (*githubactions.GitHubContext, error)
 	Infof(msg string, args ...any)
+	Warningf(msg string, args ...any)
 	Debugf(msg string, args ...any)
 	Errorf(msg string, args ...any)
 	Fatalf(msg string, args ...any)
@@ -183,4 +185,81 @@ func (h *Handler) SubmitPortal(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(5 * time.Second)
 		os.Exit(0)
 	}()
+}
+
+// UploadToPortal returns response for request to upload a file to portal
+func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
+
+	const indexKeySplitter string = "__index__"
+	var totalFiles int
+	var fileCount int = 0
+
+	h.actionPkg.Infof("Uploading File(s)")
+	w.Header().Add("Content-Type", "application/json")
+
+	// Parse our multipart form, 10 << 20 specifies a maximum
+	// upload of 10 MB files.
+	r.ParseMultipartForm(10 << 20)
+
+	// If no files are uploaded, return an error
+	if r.MultipartForm == nil {
+		h.actionPkg.Errorf("No files detected in upload request")
+		http.Error(w, `{ "error" : "Bad Request" }`, http.StatusBadRequest)
+		return
+	}
+
+	// Get a reference to the parsed multipart form
+	form := r.MultipartForm
+	files := form.File
+
+	// create temp directory to hold uploaded files
+	tempDir, err := os.MkdirTemp(os.Getenv("GITHUB_WORKSPACE"), "uploaded-files")
+	if err != nil {
+		h.actionPkg.Errorf("Unable to create temp directory: %v", zap.Error(err))
+		http.Error(w, `{ "error" : "Internal Server Error" }`, http.StatusInternalServerError)
+		return
+	}
+
+	h.actionPkg.Infof("%v", tempDir)
+
+	totalFiles = len(files)
+	h.actionPkg.Infof("Total pushed files: %d", totalFiles)
+
+	// Get a reference to the parsed file
+	for k, _ := range files {
+
+		fileCount++
+
+		h.actionPkg.Infof("[%d of %d] Initiating file upload flow", fileCount, totalFiles)
+
+		file, handler, err := r.FormFile(k)
+		if err != nil {
+			h.actionPkg.Errorf("[%d of %d] Error Retrieving the file: %v", fileCount, totalFiles, err)
+			continue
+		}
+
+		defer file.Close()
+
+		// split index from file name to get the input name
+		indexArray := strings.Split(k, indexKeySplitter)
+
+		h.actionPkg.Debugf("  • Input Field: %+v", indexArray[0])
+		h.actionPkg.Debugf("  • Uploaded File: %+v", handler.Filename)
+		h.actionPkg.Debugf("  • File Size: %+v", handler.Size)
+		h.actionPkg.Debugf("  • MIME Header: %+v", handler.Header)
+		h.actionPkg.Debugf("")
+
+		// Read file into byte array
+		fileBytes, err := io.ReadAll(file)
+		if err != nil {
+			h.actionPkg.Errorf("[%d of %d] Unable to read file: %v", fileCount, totalFiles, err)
+			continue
+		}
+
+		// create placeholder file in temp directory to hold uploaded file
+		os.WriteFile(fmt.Sprintf("%s/%s", tempDir, handler.Filename), fileBytes, 0644)
+
+	}
+
+	w.Write([]byte(`{ "status" : "Files uploaded" }`))
 }

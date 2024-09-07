@@ -1,6 +1,6 @@
 # Interactive Inputs
 
-Enhance your GitHub Action workflows with in-workflow/action inputs! This action enables dynamic workflows that can adapt to user input.
+Interactive Inputs now enables GitHub Actions to support runtime inputs for workflows and composite actions. This action allows you to leverage various input types, including but not limited to text, multiple choice, and even uploading files, creating dynamic workflows that adapt to your CI/CD needs.
 
 ## Summary
 
