@@ -101,7 +101,7 @@
                                       <div 
                                         form="custom-file-form"
                                         class="btn btn-ghost btn-sm mt-3 md:mt-0 self-start md:self-center"
-                                        @click="console.log(files); requestInputFieldReset('custom-file'); files = null; document.querySelector('#custom-file').value = ''; " 
+                                        @click="requestInputFieldReset('custom-file'); files = null; document.querySelector('#custom-file').value = ''; " 
                                         :class="{ ' btn-disabled': !files || !files.length }"
                                         >
                                         Reset
@@ -151,7 +151,7 @@
                                       <div 
                                         form="custom-files-form"
                                         class="btn btn-ghost btn-sm mt-3 md:mt-0 self-start md:self-center"
-                                        @click="console.log(files); requestInputFieldReset('custom-files'); files = null; document.querySelector('#custom-files').value = ''; " 
+                                        @click="requestInputFieldReset('custom-files'); files = null; document.querySelector('#custom-files').value = ''; " 
                                         :class="{ ' btn-disabled': !files || !files.length }"
                                         >
                                         Reset
