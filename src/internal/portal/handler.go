@@ -294,16 +294,20 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 		FailedFiles:   failedFileUploads,
 	}
 
+	// TODO: better handle these failure/ partial failure situation
+	// might make sense to return a 4XX and allow the frontend to
+	// retrospectively remove the reference of the failed files from
+	// the input fiels's value/state (user will have to be notified
+	// that this is the case)
 	if len(failedFileUploads) > 0 && len(successFileUploads) > 0 {
 		response.Status = "partial success"
+	}
+	if len(successFileUploads) == 0 && len(failedFileUploads) > 0 {
+		response.Status = "failed"
 	}
 
 	if len(failedFileUploads) == 0 && len(successFileUploads) == totalFiles {
 		response.Status = "success"
-	}
-
-	if len(successFileUploads) == 0 && len(failedFileUploads) > 0 {
-		response.Status = "failed"
 	}
 
 	//nolint will set up default fallback later
@@ -315,12 +319,6 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 // which removes all files from the cache directory for the given input field name.
 func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
 	var inputFieldLabel string
-	var response ResetUploadResponse = ResetUploadResponse{
-		DeletedFiles:       []string{},
-		FailedFiles:        []string{},
-		TotalFilesToDelete: 0,
-		TotalFilesDeleted:  0,
-	}
 
 	// Get the input field name from the request
 	if inputFieldLabel = mux.Vars(r)[InputFieldLabelUriVariableId]; inputFieldLabel == "" {
@@ -331,14 +329,55 @@ func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, err := h.cleanUpCacheDir(inputFieldLabel)
+	if err != nil && err.Error() == ErrKeyUnableToRemoveCacheDirContents {
+
+		//nolint will set up default fallback later
+		getBaseResponseHandler().NewHTTPErrorResponse(w, errors.New(ErrKeyUnableToRemoveCacheDirContents),
+			reply.WithMeta(map[string]interface{}{"data": ResetUploadResponse{
+				Status:             status,
+				DeletedFiles:       deletedFiles,
+				FailedFiles:        failedFiles,
+				TotalFilesToDelete: totalFilesToDelete,
+				TotalFilesDeleted:  totalFilesDeleted,
+			}}))
+		return
+	}
+
+	if err != nil {
+		//nolint will set up default fallback later
+		getBaseResponseHandler().NewHTTPErrorResponse(w, err)
+		return
+	}
+
+	h.actionPkg.Infof("Cache directory contents reseted for input field label: %s", inputFieldLabel)
+	//nolint will set up default fallback later
+	getBaseResponseHandler().NewHTTPDataResponse(w, http.StatusOK, &ResetUploadResponse{
+		Status:             status,
+		DeletedFiles:       deletedFiles,
+		FailedFiles:        failedFiles,
+		TotalFilesToDelete: totalFilesToDelete,
+		TotalFilesDeleted:  totalFilesDeleted,
+	})
+}
+
+// cleanUpCacheDir removes all files from the cache directory for the given input field name
+func (h *Handler) cleanUpCacheDir(inputFieldLabel string) (string, int, int, []string, []string, error) {
+
+	var (
+		status             string
+		totalFilesToDelete int      = 0
+		totalFilesDeleted  int      = 0
+		deletedFiles       []string = []string{}
+		failedFiles        []string = []string{}
+	)
+
 	// Remove all files from the cache directory for the given input field name
 	cacheDir := h.getInputFieldCacheDir(inputFieldLabel)
 	if cacheDir == "" {
 		h.actionPkg.Errorf("No cache directory found for input field label: %s", inputFieldLabel)
 
-		//nolint will set up default fallback later
-		getBaseResponseHandler().NewHTTPErrorResponse(w, errors.New(ErrKeyNoInputFieldCacheDirFound))
-		return
+		return status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, errors.New(ErrKeyNoInputFieldCacheDirFound)
 	}
 
 	h.actionPkg.Infof("Initiating the reseting of the cache directory contents for the input field label: %s (%s)", inputFieldLabel, cacheDir)
@@ -348,23 +387,18 @@ func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.actionPkg.Errorf("Unable to read cache directory: %s", cacheDir)
 
-		//nolint will set up default fallback later
-		getBaseResponseHandler().NewHTTPErrorResponse(w, errors.New(ErrKeyUnableToReadCacheDir))
-		return
+		return status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, errors.New(ErrKeyUnableToReadCacheDir)
 	}
 
 	if len(readCacheDir) == 0 {
 		h.actionPkg.Infof("No cache directory contents found for input field label: %s", inputFieldLabel)
 
-		//nolint will set up default fallback later
-		getBaseResponseHandler().NewHTTPDataResponse(w, http.StatusOK, &response)
-		return
+		return status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, nil
 	}
 
-	totalFilesToDelete := len(readCacheDir)
+	totalFilesToDelete = len(readCacheDir)
 
 	h.actionPkg.Infof("Cache directory contents (%d) found for input field label: %s", totalFilesToDelete, inputFieldLabel)
-	response.TotalFilesToDelete = totalFilesToDelete
 
 	for _, content := range readCacheDir {
 		contentFullPath := path.Join([]string{cacheDir, content.Name()}...)
@@ -373,34 +407,31 @@ func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
 		err = os.RemoveAll(contentFullPath)
 		if err != nil {
 			h.actionPkg.Errorf("Unable to remove file: %s", contentFullPath)
-			response.FailedFiles = append(response.FailedFiles, content.Name())
+			failedFiles = append(failedFiles, content.Name())
 
-			if len(response.FailedFiles) > 0 && len(response.DeletedFiles) > 0 {
-				response.Status = "partial success"
+			if len(failedFiles) > 0 && len(deletedFiles) > 0 {
+				status = "partial success"
 			}
 
-			if len(response.FailedFiles) == 0 && len(response.DeletedFiles) == totalFilesToDelete {
-				response.Status = "success"
+			if len(failedFiles) == 0 && len(deletedFiles) == totalFilesToDelete {
+				status = "success"
 			}
 
-			if len(response.DeletedFiles) == 0 && len(response.FailedFiles) > 0 {
-				response.Status = "failed"
+			if len(deletedFiles) == 0 && len(failedFiles) > 0 {
+				status = "failed"
 			}
 
-			//nolint will set up default fallback later
-			getBaseResponseHandler().NewHTTPErrorResponse(w, errors.New(ErrKeyUnableToRemoveCacheDirContents),
-				reply.WithMeta(map[string]interface{}{"data": response}))
-			return
+			return status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, errors.New(ErrKeyUnableToRemoveCacheDirContents)
 		}
 
-		response.TotalFilesDeleted++
-		response.DeletedFiles = append(response.DeletedFiles, content.Name())
+		totalFilesDeleted++
+		deletedFiles = append(deletedFiles, content.Name())
 	}
 
-	response.Status = "success"
-	h.actionPkg.Infof("Cache directory contents reseted for input field label: %s", inputFieldLabel)
-	//nolint will set up default fallback later
-	getBaseResponseHandler().NewHTTPDataResponse(w, http.StatusOK, &response)
+	status = "success"
+
+	return status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, nil
+
 }
 
 // getInputFieldCacheDir returns the cache directory path for the given input field name.
