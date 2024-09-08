@@ -61,37 +61,47 @@
                             {{$inputDefaultValue := $interactiveInput.Properties.DefaultValue }}
                             {{$inputReadOnly := $interactiveInput.Properties.ReadOnly }}
                             {{$inputDisableAutoCopySelection := $interactiveInput.Properties.DisableAutoCopySelection }}
+                            {{$inputAcceptedFileTypes := $interactiveInput.Properties.AcceptedFileTypes }}
 
                             {{  if eq $inputType "file"  }}
                               <div class="sm:col-span-2" x-data="{ files: null }">
                                   <span class="flex mr-2">
-                                    <label for="custom-file-label" class="block text-sm font-semibold leading-6 text-gray-900">Choose the file to
-                                      upload</label>
-                    
-                                    <div class="dropdown dropdown-right">
-                                      <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]">
-                                        <svg tabindex="0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                          class="h-4 w-4 stroke-current">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
+                                    <label for="{{ $inputLabel }}-label" class="block text-sm font-semibold leading-6 text-gray-900">{{ $inputDisplay }}</label>
+                                    {{ if $inputDescription }}
+                                      <div class="dropdown dropdown-right">
+                                          <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]">
+                                            <svg
+                                              tabindex="0"
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                              class="h-4 w-4 stroke-current">
+                                              <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                          </div>
+                                          <div
+                                            tabindex="0"
+                                            class="card compact dropdown-content bg-base-100 rounded-box z-[1] w-64 shadow">
+                                            <div tabindex="0" class="card-body">
+                                              <h2 class="card-title">More info?</h2>
+                                              <p>{{ $inputDescription }}</p>
+                                            </div>
+                                          </div>
                                       </div>
-                                      <div tabindex="0" class="card compact dropdown-content bg-base-100 rounded-box z-[1] w-64 shadow">
-                                        <div tabindex="0" class="card-body">
-                                          <h2 class="card-title">More info?</h2>
-                                          <p>City of the user</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                    
+                                    {{ end }}
                                   </span>
                                   <div class="mt-2.5 flex flex-col md:flex-row md:justify-between">
-                                    <label id="custom-file-label" for="custom-file" class="input input-bordered w-full md:w-[80%] max-w-xl md:max-w-[80%] content-center overflow-y-auto">
+                                    <label id="{{ $inputLabel }}-label" for="{{ $inputLabel }}" class="input input-bordered w-full md:w-[80%] max-w-xl md:max-w-[80%] content-center overflow-y-auto">
                                       <input 
-                                      type="file" name="custom-file" id="custom-file"
-                                      x-on:change="files = $event.target.files.length > 0 ? Object.values($event.target.files) : files; $event.target.files.length > 0 ? submitFilesForUpload(files, 'custom-file') : console.log('No file selected')"
+                                      type="file" name="{{ $inputLabel }}" id="{{ $inputLabel }}"
+                                      x-on:change="files = $event.target.files.length > 0 ? Object.values($event.target.files) : files; $event.target.files.length > 0 ? submitFilesForUpload(files, '{{ $inputLabel }}') : console.log('No file selected')"
                                       style="opacity:0; filter:alpha(opacity=0);"
-                                      required
+                                      {{ if $inputRequired }} required {{ end }}
+                                      {{ if $inputAcceptedFileTypes }}  accept="{{range $inputAcceptedFileTypes}}{{.}},{{end}}" {{end}}
                                       class="absolute"
                                       >
                                       <span  x-html="files ? files.map(file => `<span class='badge badge-ghost'>${file.name}</span>`).join(' ') : 'Tap to select your file'"></span>
@@ -99,9 +109,9 @@
                                   
                                     <span class="flex md:ml-4 space-x-2">
                                       <div 
-                                        form="custom-file-form"
+                                        form="{{ $inputLabel }}-form"
                                         class="btn btn-ghost btn-sm mt-3 md:mt-0 self-start md:self-center"
-                                        @click="requestInputFieldReset('custom-file'); files = null; document.querySelector('#custom-file').value = ''; " 
+                                        @click="requestInputFieldReset('{{ $inputLabel }}'); files = null; document.querySelector('#{{ $inputLabel }}').value = ''; " 
                                         :class="{ ' btn-disabled': !files || !files.length }"
                                         >
                                         Reset
@@ -115,33 +125,42 @@
                             {{  if eq $inputType "multifile"  }}
                               <div class="sm:col-span-2" x-data="{ files: null }">
                                   <span class="flex mr-2">
-                                    <label for="custom-files-label" class="block text-sm font-semibold leading-6 text-gray-900">Choose the files to
-                                      upload</label>
-                    
-                                    <div class="dropdown dropdown-right">
-                                      <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]">
-                                        <svg tabindex="0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                          class="h-4 w-4 stroke-current">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
+                                    <label for="{{ $inputLabel }}-label" class="block text-sm font-semibold leading-6 text-gray-900">{{ $inputDisplay }}</label>
+                                    {{ if $inputDescription }}
+                                      <div class="dropdown dropdown-right">
+                                          <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]">
+                                            <svg
+                                              tabindex="0"
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                              class="h-4 w-4 stroke-current">
+                                              <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                          </div>
+                                          <div
+                                            tabindex="0"
+                                            class="card compact dropdown-content bg-base-100 rounded-box z-[1] w-64 shadow">
+                                            <div tabindex="0" class="card-body">
+                                              <h2 class="card-title">More info?</h2>
+                                              <p>{{ $inputDescription }}</p>
+                                            </div>
+                                          </div>
                                       </div>
-                                      <div tabindex="0" class="card compact dropdown-content bg-base-100 rounded-box z-[1] w-64 shadow">
-                                        <div tabindex="0" class="card-body">
-                                          <h2 class="card-title">More info?</h2>
-                                          <p>City of the user</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                    
+                                    {{ end }}
                                   </span>
                                   <div class="mt-2.5 flex flex-col md:flex-row md:justify-between">
-                                      <label id="custom-files-label" for="custom-files" class="input input-bordered w-full md:w-[80%] max-w-xl md:max-w-[80%] content-center overflow-y-auto">
+                                      <label id="{{ $inputLabel }}-label" for="{{ $inputLabel }}" class="input input-bordered w-full md:w-[80%] max-w-xl md:max-w-[80%] content-center overflow-y-auto">
                                         <input 
-                                        type="file" name="custom-files" id="custom-files"
-                                        x-on:change="files = $event.target.files.length > 0 ? Object.values($event.target.files) : files; $event.target.files.length > 0 ? submitFilesForUpload(files, 'custom-files') : console.log('No files selected')"  multiple
+                                        type="file" name="{{ $inputLabel }}" id="{{ $inputLabel }}"
+                                        x-on:change="files = $event.target.files.length > 0 ? Object.values($event.target.files) : files; $event.target.files.length > 0 ? submitFilesForUpload(files, '{{ $inputLabel }}') : console.log('No files selected')"  multiple
                                         style="opacity:0; filter:alpha(opacity=0);"
-                                        required
+                                        {{ if $inputRequired }} required {{ end }}
+                                        {{ if $inputAcceptedFileTypes }}  accept="{{range $inputAcceptedFileTypes}}{{.}},{{end}}" {{end}}
                                         class="absolute"
                                         >
                                         <span  x-html="files ? files.map(file => `<span class='badge badge-ghost'>${file.name}</span>`).join(' ') : 'Tap to select your file(s)'"></span>
@@ -149,9 +168,9 @@
                                     
                                     <span class="flex md:ml-4 space-x-2">
                                       <div 
-                                        form="custom-files-form"
+                                        form="{{ $inputLabel }}-form"
                                         class="btn btn-ghost btn-sm mt-3 md:mt-0 self-start md:self-center"
-                                        @click="requestInputFieldReset('custom-files'); files = null; document.querySelector('#custom-files').value = ''; " 
+                                        @click="requestInputFieldReset('{{ $inputLabel }}'); files = null; document.querySelector('#{{ $inputLabel }}').value = ''; " 
                                         :class="{ ' btn-disabled': !files || !files.length }"
                                         >
                                         Reset
