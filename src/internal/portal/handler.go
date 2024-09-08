@@ -218,6 +218,7 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 	var fileCount int = 0
 	var successFileUploads []string = []string{}
 	var failedFileUploads []string = []string{}
+	var cleanExistingCacheDir bool = true
 
 	h.actionPkg.Infof("Uploading File(s)")
 
@@ -273,6 +274,58 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
+		// if cache dir exists, remove contents
+		if cleanExistingCacheDir {
+			h.actionPkg.Debugf("Cleaning existing cache dir for input field: %s", inputFieldLabel)
+
+			status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, err := h.cleanUpCacheDir(inputFieldLabel)
+			if err != nil && err.Error() == ErrKeyUnableToRemoveCacheDirContents {
+				failedFileUploads = append(failedFileUploads, handler.Filename)
+
+				h.actionPkg.Debugf(`
+Cache clean overview:
+	• Status: %s
+	• Total Files: %d
+	• Total Files Deleted: %d
+	• Deleted Files: %+v
+	• Failed Files: %+v
+	• Error: %+v
+				`, status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, err)
+
+				//nolint will set up default fallback later
+				getBaseResponseHandler().NewHTTPErrorResponse(w, errors.New(ErrKeyUnableToRemoveCacheDirContents),
+					reply.WithMeta(map[string]interface{}{"data": UploadToPortalResponse{
+						Status:        status,
+						UploadedFiles: successFileUploads,
+						FailedFiles:   failedFileUploads,
+					}}))
+				return
+			}
+
+			if err != nil {
+
+				h.actionPkg.Debugf(`
+Cache clean overview:
+	• Status: %s
+	• Total Files: %d
+	• Total Files Deleted: %d
+	• Deleted Files: %+v
+	• Failed Files: %+v
+	• Error: %+v
+				`, status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, err)
+
+				//nolint will set up default fallback later
+				getBaseResponseHandler().NewHTTPErrorResponse(w, err)
+				return
+			}
+
+			if totalFilesDeleted == totalFilesToDelete {
+				h.actionPkg.Debugf("Successfully cleaned up cache dir for input field: %s", inputFieldLabel)
+			}
+
+			cleanExistingCacheDir = false
+		}
+
 		// create placeholder file in temp directory to hold uploaded file
 		inputCacheDir := h.getInputFieldCacheDir(inputFieldLabel)
 		err = os.WriteFile(fmt.Sprintf("%s/%s", inputCacheDir, handler.Filename), fileBytes, 0644)
@@ -312,7 +365,7 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 
 	//nolint will set up default fallback later
 	getBaseResponseHandler().NewHTTPDataResponse(w, http.StatusOK, &response)
-	return
+
 }
 
 // ResetUpload returns response for request to reset upload,
