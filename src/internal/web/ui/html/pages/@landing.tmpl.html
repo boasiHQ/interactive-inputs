@@ -484,9 +484,11 @@
                           });
                           throw new Error('Network response was not ok');
                         }
+
+                        return response.json();
                       })
-                      .then(()=>{
-                        console.log('File(s) cleared successfully');
+                      .then(data => {
+                        console.log('File(s) cleared successfully:', data);
                         setTimeout(() => {
                           toasty.push({
                             title: "Reset File Cache - Success",

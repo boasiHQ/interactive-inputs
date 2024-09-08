@@ -1,6 +1,7 @@
 package portal
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/ooaklee/reply"
 	"github.com/sethvargo/go-githubactions"
 	"go.uber.org/zap"
 )
@@ -214,16 +216,19 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 	const indexKeySplitter string = "__index__"
 	var totalFiles int
 	var fileCount int = 0
+	var successFileUploads []string = []string{}
+	var failedFileUploads []string = []string{}
 
 	h.actionPkg.Infof("Uploading File(s)")
-	w.Header().Add("Content-Type", "application/json")
 
 	r.ParseMultipartForm(10 << 20)
 
 	// If no files are uploaded, return an error
 	if r.MultipartForm == nil {
 		h.actionPkg.Errorf("No files detected in upload request")
-		http.Error(w, `{ "error" : "Bad Request" }`, http.StatusBadRequest)
+
+		//nolint will set up default fallback later
+		getBaseResponseHandler().NewHTTPErrorResponse(w, errors.New(ErrNoFilesProvidedWithUploadRequest))
 		return
 	}
 
@@ -244,6 +249,7 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 		file, handler, err := r.FormFile(k)
 		if err != nil {
 			h.actionPkg.Errorf("[%d of %d] Error Retrieving the file: %v", fileCount, totalFiles, err)
+			failedFileUploads = append(failedFileUploads, k)
 			continue
 		}
 
@@ -263,28 +269,65 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 		fileBytes, err := io.ReadAll(file)
 		if err != nil {
 			h.actionPkg.Errorf("[%d of %d] Unable to read file: %v", fileCount, totalFiles, err)
+			failedFileUploads = append(failedFileUploads, handler.Filename)
 			continue
 		}
 
 		// create placeholder file in temp directory to hold uploaded file
-		os.WriteFile(fmt.Sprintf("%s/%s", h.getInputFieldCacheDir(inputFieldLabel), handler.Filename), fileBytes, 0644)
+		inputCacheDir := h.getInputFieldCacheDir(inputFieldLabel)
+		err = os.WriteFile(fmt.Sprintf("%s/%s", inputCacheDir, handler.Filename), fileBytes, 0644)
+		if err != nil {
+			h.actionPkg.Errorf("[%d of %d] Unable to write file to input field cache dir: %s", fileCount, totalFiles, inputCacheDir)
+			failedFileUploads = append(failedFileUploads, handler.Filename)
+			continue
+		}
+
+		// add file to successful uploads
+		successFileUploads = append(successFileUploads, handler.Filename)
 
 	}
 
-	w.Write([]byte(`{ "status" : "Files uploaded" }`))
+	h.actionPkg.Infof("Successfully uploaded %d of %d files", len(successFileUploads), totalFiles)
+
+	response := UploadToPortalResponse{
+		UploadedFiles: successFileUploads,
+		FailedFiles:   failedFileUploads,
+	}
+
+	if len(failedFileUploads) > 0 && len(successFileUploads) > 0 {
+		response.Status = "partial success"
+	}
+
+	if len(failedFileUploads) == 0 && len(successFileUploads) == totalFiles {
+		response.Status = "success"
+	}
+
+	if len(successFileUploads) == 0 && len(failedFileUploads) > 0 {
+		response.Status = "failed"
+	}
+
+	//nolint will set up default fallback later
+	getBaseResponseHandler().NewHTTPDataResponse(w, http.StatusOK, &response)
+	return
 }
 
 // ResetUpload returns response for request to reset upload,
 // which removes all files from the cache directory for the given input field name.
 func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-
 	var inputFieldLabel string
+	var response ResetUploadResponse = ResetUploadResponse{
+		DeletedFiles:       []string{},
+		FailedFiles:        []string{},
+		TotalFilesToDelete: 0,
+		TotalFilesDeleted:  0,
+	}
 
 	// Get the input field name from the request
 	if inputFieldLabel = mux.Vars(r)[InputFieldLabelUriVariableId]; inputFieldLabel == "" {
 		h.actionPkg.Errorf("Input field label not found in request")
-		http.Error(w, `{ "error" : "Bad Request" }`, http.StatusBadRequest)
+
+		//nolint will set up default fallback later
+		getBaseResponseHandler().NewHTTPErrorResponse(w, errors.New(ErrKeyInvalidInputFieldId))
 		return
 	}
 
@@ -292,7 +335,9 @@ func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
 	cacheDir := h.getInputFieldCacheDir(inputFieldLabel)
 	if cacheDir == "" {
 		h.actionPkg.Errorf("No cache directory found for input field label: %s", inputFieldLabel)
-		http.Error(w, `{ "error" : "Bad Request" }`, http.StatusBadRequest)
+
+		//nolint will set up default fallback later
+		getBaseResponseHandler().NewHTTPErrorResponse(w, errors.New(ErrKeyNoInputFieldCacheDirFound))
 		return
 	}
 
@@ -302,15 +347,24 @@ func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
 	readCacheDir, err := os.ReadDir(cacheDir)
 	if err != nil {
 		h.actionPkg.Errorf("Unable to read cache directory: %s", cacheDir)
-		http.Error(w, `{ "error" : "Bad Request" }`, http.StatusBadRequest)
+
+		//nolint will set up default fallback later
+		getBaseResponseHandler().NewHTTPErrorResponse(w, errors.New(ErrKeyUnableToReadCacheDir))
 		return
 	}
 
 	if len(readCacheDir) == 0 {
 		h.actionPkg.Infof("No cache directory contents found for input field label: %s", inputFieldLabel)
-		w.WriteHeader(http.StatusOK)
+
+		//nolint will set up default fallback later
+		getBaseResponseHandler().NewHTTPDataResponse(w, http.StatusOK, &response)
 		return
 	}
+
+	totalFilesToDelete := len(readCacheDir)
+
+	h.actionPkg.Infof("Cache directory contents (%d) found for input field label: %s", totalFilesToDelete, inputFieldLabel)
+	response.TotalFilesToDelete = totalFilesToDelete
 
 	for _, content := range readCacheDir {
 		contentFullPath := path.Join([]string{cacheDir, content.Name()}...)
@@ -319,16 +373,42 @@ func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
 		err = os.RemoveAll(contentFullPath)
 		if err != nil {
 			h.actionPkg.Errorf("Unable to remove file: %s", contentFullPath)
-			http.Error(w, `{ "error" : "Bad Request" }`, http.StatusBadRequest)
+			response.FailedFiles = append(response.FailedFiles, content.Name())
+
+			if len(response.FailedFiles) > 0 && len(response.DeletedFiles) > 0 {
+				response.Status = "partial success"
+			}
+
+			if len(response.FailedFiles) == 0 && len(response.DeletedFiles) == totalFilesToDelete {
+				response.Status = "success"
+			}
+
+			if len(response.DeletedFiles) == 0 && len(response.FailedFiles) > 0 {
+				response.Status = "failed"
+			}
+
+			//nolint will set up default fallback later
+			getBaseResponseHandler().NewHTTPErrorResponse(w, errors.New(ErrKeyUnableToRemoveCacheDirContents),
+				reply.WithMeta(map[string]interface{}{"data": response}))
 			return
 		}
+
+		response.TotalFilesDeleted++
+		response.DeletedFiles = append(response.DeletedFiles, content.Name())
 	}
 
+	response.Status = "success"
 	h.actionPkg.Infof("Cache directory contents reseted for input field label: %s", inputFieldLabel)
-	w.WriteHeader(http.StatusOK)
+	//nolint will set up default fallback later
+	getBaseResponseHandler().NewHTTPDataResponse(w, http.StatusOK, &response)
 }
 
 // getInputFieldCacheDir returns the cache directory path for the given input field name.
 func (h *Handler) getInputFieldCacheDir(inputFieldName string) string {
 	return h.inputFieldLabelToCacheDirMapping[inputFieldName]
+}
+
+// getBaseResponseHandler returns response handler configured with respective error map
+func getBaseResponseHandler() *reply.Replier {
+	return reply.NewReplier(append([]reply.ErrorManifest{}, portalErrorMap))
 }
