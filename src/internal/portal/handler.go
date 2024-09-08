@@ -6,10 +6,12 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 	"text/template"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/sethvargo/go-githubactions"
 	"go.uber.org/zap"
 )
@@ -42,16 +44,20 @@ type Handler struct {
 
 	// githubToken is the github token used to make Api calls
 	githubToken string
+
+	// inputFieldLabelToCacheDirMapping mapping of input field label to its cache directory
+	inputFieldLabelToCacheDirMapping map[string]string
 }
 
 // NewHandler returns portal handler
-func NewHandler(actionPkg actionPkg, isRunningLocal bool, embeddedContent fs.FS, embeddedContentFilePathPrefix, githubToken string) *Handler {
+func NewHandler(actionPkg actionPkg, isRunningLocal bool, embeddedContent fs.FS, embeddedContentFilePathPrefix, githubToken string, inputFieldLabelToCacheDirMapping map[string]string) *Handler {
 	return &Handler{
-		isRunningLocal:                isRunningLocal,
-		actionPkg:                     actionPkg,
-		embeddedContent:               embeddedContent,
-		embeddedContentFilePathPrefix: embeddedContentFilePathPrefix,
-		githubToken:                   githubToken,
+		isRunningLocal:                   isRunningLocal,
+		actionPkg:                        actionPkg,
+		embeddedContent:                  embeddedContent,
+		embeddedContentFilePathPrefix:    embeddedContentFilePathPrefix,
+		githubToken:                      githubToken,
+		inputFieldLabelToCacheDirMapping: inputFieldLabelToCacheDirMapping,
 	}
 }
 
@@ -126,6 +132,20 @@ func (h *Handler) SubmitPortal(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for key, value := range r.Form {
+
+		// handle file/multifile inputs
+		if cacheDir := h.getInputFieldCacheDir(key); cacheDir != "" {
+
+			h.actionPkg.Infof("%s: %s", key, cacheDir)
+
+			if !h.isRunningLocal {
+				// Can't use when running locally
+				h.actionPkg.SetOutput(key, cacheDir)
+			}
+
+			continue
+		}
+
 		h.actionPkg.Infof("%s: %s", key, value)
 
 		if !h.isRunningLocal {
@@ -187,7 +207,8 @@ func (h *Handler) SubmitPortal(w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
-// UploadToPortal returns response for request to upload a file to portal
+// UploadToPortal returns response for request to upload file(s) to portal
+// for later use
 func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 
 	const indexKeySplitter string = "__index__"
@@ -197,8 +218,6 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 	h.actionPkg.Infof("Uploading File(s)")
 	w.Header().Add("Content-Type", "application/json")
 
-	// Parse our multipart form, 10 << 20 specifies a maximum
-	// upload of 10 MB files.
 	r.ParseMultipartForm(10 << 20)
 
 	// If no files are uploaded, return an error
@@ -211,16 +230,6 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 	// Get a reference to the parsed multipart form
 	form := r.MultipartForm
 	files := form.File
-
-	// create temp directory to hold uploaded files
-	tempDir, err := os.MkdirTemp(os.Getenv("GITHUB_WORKSPACE"), "uploaded-files")
-	if err != nil {
-		h.actionPkg.Errorf("Unable to create temp directory: %v", zap.Error(err))
-		http.Error(w, `{ "error" : "Internal Server Error" }`, http.StatusInternalServerError)
-		return
-	}
-
-	h.actionPkg.Infof("%v", tempDir)
 
 	totalFiles = len(files)
 	h.actionPkg.Infof("Total pushed files: %d", totalFiles)
@@ -242,8 +251,9 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 
 		// split index from file name to get the input name
 		indexArray := strings.Split(k, indexKeySplitter)
+		inputFieldLabel := indexArray[0]
 
-		h.actionPkg.Debugf("  • Input Field: %+v", indexArray[0])
+		h.actionPkg.Debugf("  • Input Field: %+v", inputFieldLabel)
 		h.actionPkg.Debugf("  • Uploaded File: %+v", handler.Filename)
 		h.actionPkg.Debugf("  • File Size: %+v", handler.Size)
 		h.actionPkg.Debugf("  • MIME Header: %+v", handler.Header)
@@ -257,9 +267,68 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// create placeholder file in temp directory to hold uploaded file
-		os.WriteFile(fmt.Sprintf("%s/%s", tempDir, handler.Filename), fileBytes, 0644)
+		os.WriteFile(fmt.Sprintf("%s/%s", h.getInputFieldCacheDir(inputFieldLabel), handler.Filename), fileBytes, 0644)
 
 	}
 
 	w.Write([]byte(`{ "status" : "Files uploaded" }`))
+}
+
+// ResetUpload returns response for request to reset upload,
+// which removes all files from the cache directory for the given input field name.
+func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+
+	var inputFieldLabel string
+
+	// Get the input field name from the request
+	if inputFieldLabel = mux.Vars(r)[InputFieldLabelUriVariableId]; inputFieldLabel == "" {
+		h.actionPkg.Errorf("Input field label not found in request")
+		http.Error(w, `{ "error" : "Bad Request" }`, http.StatusBadRequest)
+		return
+	}
+
+	// Remove all files from the cache directory for the given input field name
+	cacheDir := h.getInputFieldCacheDir(inputFieldLabel)
+	if cacheDir == "" {
+		h.actionPkg.Errorf("No cache directory found for input field label: %s", inputFieldLabel)
+		http.Error(w, `{ "error" : "Bad Request" }`, http.StatusBadRequest)
+		return
+	}
+
+	h.actionPkg.Infof("Initiating the reseting of the cache directory contents for the input field label: %s (%s)", inputFieldLabel, cacheDir)
+
+	// Remove the cache directory contents for the given input field name
+	readCacheDir, err := os.ReadDir(cacheDir)
+	if err != nil {
+		h.actionPkg.Errorf("Unable to read cache directory: %s", cacheDir)
+		http.Error(w, `{ "error" : "Bad Request" }`, http.StatusBadRequest)
+		return
+	}
+
+	if len(readCacheDir) == 0 {
+		h.actionPkg.Infof("No cache directory contents found for input field label: %s", inputFieldLabel)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	for _, content := range readCacheDir {
+		contentFullPath := path.Join([]string{cacheDir, content.Name()}...)
+
+		h.actionPkg.Debugf("  • Removing file: %s (%s)", content.Name(), contentFullPath)
+		err = os.RemoveAll(contentFullPath)
+		if err != nil {
+			h.actionPkg.Errorf("Unable to remove file: %s", contentFullPath)
+			http.Error(w, `{ "error" : "Bad Request" }`, http.StatusBadRequest)
+			return
+		}
+	}
+
+	h.actionPkg.Infof("Cache directory contents reseted for input field label: %s", inputFieldLabel)
+	w.WriteHeader(http.StatusOK)
+}
+
+// getInputFieldCacheDir returns the cache directory path for the given input field name.
+func (h *Handler) getInputFieldCacheDir(inputFieldName string) string {
+	return h.inputFieldLabelToCacheDirMapping[inputFieldName]
 }

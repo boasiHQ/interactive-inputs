@@ -13,7 +13,7 @@ env \
   'GITHUB_API_URL=https://api.github.com' \
   'GITHUB_REPOSITORY=blend/repo-that-uses-an-action' \
   "GITHUB_ACTOR=$(whoami)" \
-  "GITHUB_WORKSPACE=$(pwd)" \
+  "GITHUB_WORKSPACE=$(pwd)/.." \
   "INPUT_TITLE=Start something exciting, dynamically..." \
   'INPUT_INTERACTIVE=fields:
   - label: overview
@@ -22,6 +22,12 @@ env \
       description: Information on what this action does
       defaultValue: "This example is a powerful demonstration of how you can utilize the boasiHQ/interactive-inputs action to tailor the dynamic portal to your specific needs and desired output."
       readOnly: true
+  - label: custom-file
+    properties:
+      type: file
+  - label: custom-files
+    properties:
+      type: multifile
   - label: name
     properties:
       display: What is your name?
@@ -109,7 +115,7 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
   "GITHUB_ACTOR=$(whoami)" \
   'GITHUB_API_URL=https://api.github.com' \
   'GITHUB_REPOSITORY=blend/repo-that-uses-an-action' \
-  "GITHUB_WORKSPACE=$(pwd)" \
+  "GITHUB_WORKSPACE=$(pwd)/.." \
   "INPUT_TITLE=Start something exciting, dynamically..." \
   'INPUT_INTERACTIVE=fields:
   - label: overview
@@ -118,6 +124,12 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
       description: Information on what this action does
       defaultValue: "This example is a powerful demonstration of how you can utilize the boasiHQ/interactive-inputs action to tailor the dynamic portal to your specific needs and desired output."
       readOnly: true
+  - label: custom-file
+    properties:
+      type: file
+  - label: custom-files
+    properties:
+      type: multifile
   - label: name
     properties:
       display: What is your name?

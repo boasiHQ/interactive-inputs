@@ -62,9 +62,8 @@
                             {{$inputReadOnly := $interactiveInput.Properties.ReadOnly }}
                             {{$inputDisableAutoCopySelection := $interactiveInput.Properties.DisableAutoCopySelection }}
 
-                            {{ if eq $i 0 }}
+                            {{  if eq $inputType "file"  }}
                               <div class="sm:col-span-2" x-data="{ files: null }">
-                                <form method="post" >
                                   <span class="flex mr-2">
                                     <label for="custom-file-label" class="block text-sm font-semibold leading-6 text-gray-900">Choose the file to
                                       upload</label>
@@ -87,41 +86,34 @@
                     
                                   </span>
                                   <div class="mt-2.5 flex flex-col md:flex-row md:justify-between">
-                                      <label id="custom-file-label" for="custom-file" class="input input-bordered w-full md:w-[80%] max-w-xl md:max-w-[80%] content-center overflow-y-auto">
-                                        <input 
-                                        type="file" name="custom-file" id="custom-file" class="hidden"
-                                        x-on:change="files = $event.target.files.length > 0 ? Object.values($event.target.files) : files">
-                                        <span 
-                                        x-html="files ? files.map(file => `<span class='badge badge-ghost'>${file.name}</span>`).join(' ') : 'Tap to select your file'"></span>
-                                      </label>
-                                    
+                                    <label id="custom-file-label" for="custom-file" class="input input-bordered w-full md:w-[80%] max-w-xl md:max-w-[80%] content-center overflow-y-auto">
+                                      <input 
+                                      type="file" name="custom-file" id="custom-file"
+                                      x-on:change="files = $event.target.files.length > 0 ? Object.values($event.target.files) : files; $event.target.files.length > 0 ? submitFilesForUpload(files, 'custom-file') : console.log('No file selected')"
+                                      style="opacity:0; filter:alpha(opacity=0);"
+                                      required
+                                      class="absolute"
+                                      >
+                                      <span  x-html="files ? files.map(file => `<span class='badge badge-ghost'>${file.name}</span>`).join(' ') : 'Tap to select your file'"></span>
+                                    </label>
+                                  
                                     <span class="flex md:ml-4 space-x-2">
-
-                                      <button 
+                                      <div 
                                         form="custom-file-form"
-                                        class="btn btn-sm mt-3 md:mt-0 self-start md:self-center"
-                                        @click="console.log(files); submitFilesForUpload(files, 'custom-file') "
+                                        class="btn btn-ghost btn-sm mt-3 md:mt-0 self-start md:self-center"
+                                        @click="console.log(files); requestInputFieldReset('custom-file'); files = null; document.querySelector('#custom-file').value = ''; " 
                                         :class="{ ' btn-disabled': !files || !files.length }"
                                         >
-                                        Upload
-                                      </button>
-  
-                                      <div 
-                                        class="btn btn-ghost btn-sm mt-3 md:mt-0 self-start md:self-center"
-                                        @click="console.log(files); files = null"
-                                        :class="{ ' btn-disabled': !files || !files.length }">
                                         Reset
                                       </div>
                                     </span>
-                          
-                                  </div>
-                                </form>
+                        
+                                </div>
                               </div>
                             {{end}}
 
-                            {{ if eq $i 1 }}
+                            {{  if eq $inputType "multifile"  }}
                               <div class="sm:col-span-2" x-data="{ files: null }">
-                                <form method="post">
                                   <span class="flex mr-2">
                                     <label for="custom-files-label" class="block text-sm font-semibold leading-6 text-gray-900">Choose the files to
                                       upload</label>
@@ -146,26 +138,20 @@
                                   <div class="mt-2.5 flex flex-col md:flex-row md:justify-between">
                                       <label id="custom-files-label" for="custom-files" class="input input-bordered w-full md:w-[80%] max-w-xl md:max-w-[80%] content-center overflow-y-auto">
                                         <input 
-                                        type="file" name="custom-files" id="custom-files" class="hidden"
-                                        x-on:change="files = $event.target.files.length > 0 ? Object.values($event.target.files) : files"  multiple
+                                        type="file" name="custom-files" id="custom-files"
+                                        x-on:change="files = $event.target.files.length > 0 ? Object.values($event.target.files) : files; $event.target.files.length > 0 ? submitFilesForUpload(files, 'custom-files') : console.log('No files selected')"  multiple
+                                        style="opacity:0; filter:alpha(opacity=0);"
                                         required
+                                        class="absolute"
                                         >
-                                        <span x-html="files ? files.map(file => `<span class='badge badge-ghost'>${file.name}</span>`).join(' ') : 'Tap to select your file(s)'"></span>
+                                        <span  x-html="files ? files.map(file => `<span class='badge badge-ghost'>${file.name}</span>`).join(' ') : 'Tap to select your file(s)'"></span>
                                       </label>
                                     
                                     <span class="flex md:ml-4 space-x-2">
-                                      <button 
-                                        form="custom-files-form"
-                                        class="btn btn-sm mt-3 md:mt-0 self-start md:self-center"
-                                        @click="console.log(files); submitFilesForUpload(files, 'custom-files') "
-                                        :class="{ ' btn-disabled': !files || !files.length }"
-                                        >
-                                        Upload
-                                      </button>
-  
                                       <div 
+                                        form="custom-files-form"
                                         class="btn btn-ghost btn-sm mt-3 md:mt-0 self-start md:self-center"
-                                        @click="console.log(files); files = null" 
+                                        @click="console.log(files); requestInputFieldReset('custom-files'); files = null; document.querySelector('#custom-files').value = ''; " 
                                         :class="{ ' btn-disabled': !files || !files.length }"
                                         >
                                         Reset
@@ -173,7 +159,6 @@
                                     </span>
                           
                                   </div>
-                                </form>
                               </div>
                             {{end}}
 
@@ -472,6 +457,57 @@
                   return selectedOption
                 };
 
+                // requestInputFieldReset is a function that handles resetting the file cache for a given input label.
+                const requestInputFieldReset = (inputLabel) => {
+
+                    // If the selected option is undefined or empty, return early.
+                    if (inputLabel === undefined || inputLabel === '') {
+                      return;
+                    }
+
+                    toasty.push({
+                      title: `Reset File Cache - Initiated`,
+                      content: `Reseting provided file(s).`
+                    });
+
+                    fetch(`/api/v1/reset/${inputLabel}`, {
+                      method: 'DELETE',
+                    })
+                      .then(response => {
+                        if (!response.ok) {
+
+                          console.log(response)
+                          toasty.push({
+                            title: "`Reset File Cache - Error",
+                            content: "Please try again.",
+                            style: "error"
+                          });
+                          throw new Error('Network response was not ok');
+                        }
+                      })
+                      .then(()=>{
+                        console.log('File(s) cleared successfully');
+                        setTimeout(() => {
+                          toasty.push({
+                            title: "Reset File Cache - Success",
+                            content: "The previously provided file(s) are removed.",
+                            style: "success",
+                          });;
+                        }, 1000);
+                      })
+                      .catch(error => {
+                        console.error('Failed to clear file(s):', error);
+                        setTimeout(() => {
+                          toasty.push({
+                            title: "Reset File Cache - Failed",
+                            content: `Something went wrong while attempting to clear the provided files: ${error}`,
+                            style: "error"
+                          });
+                        }, 1000);
+                      });
+                  }
+
+                // submiteFilesForUpload handles the file upload process.
                 const submitFilesForUpload = (files, inputLabel="files") => {
                   if (!files || files.length === 0) return;
 
@@ -487,10 +523,10 @@
 
                   toasty.push({
                       title: `File Upload - Initiated`,
-                      content: `You are uploading <b>${files.length}</b> file(s).`
+                      content: `Uploading <b>${files.length}</b> file(s).`
                   });
 
-                  fetch('/upload', {
+                  fetch('/api/v1/upload', {
                     method: 'POST',
                     body: formData,
                   })
@@ -510,7 +546,7 @@
                       setTimeout(() => {
                         toasty.push({
                           title: "File Upload - Success",
-                          content: `You are uploaded <b>${files.length}</b> file(s).`,
+                          content: `<b>${files.length}</b> file(s) ${files.length > 1 ? 'have' : 'has'} been uploaded.`,
                           style: "success",
                         });;
                       }, 1000);
@@ -520,7 +556,7 @@
                       setTimeout(() => {
                         toasty.push({
                           title: "File Upload - Failed",
-                          content: `Failed to upload the file(s): ${error.statusCode}`,
+                          content: `Failed to upload the file(s): ${error}`,
                           style: "error"
                         });
                       }, 1000);

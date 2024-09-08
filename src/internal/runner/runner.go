@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/boasihq/interactive-inputs/internal/config"
 	"github.com/boasihq/interactive-inputs/internal/errors"
@@ -13,6 +14,7 @@ import (
 	"github.com/boasihq/interactive-inputs/internal/portal"
 	webui "github.com/boasihq/interactive-inputs/internal/web"
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 	"golang.ngrok.com/ngrok"
 	nconfig "golang.ngrok.com/ngrok/config"
 )
@@ -23,6 +25,9 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 
 	var githubActionWorkingDir string = os.Getenv("GITHUB_WORKSPACE")
 	var isRunningLocal bool = os.Getenv("IAIP_LOCAL_RUN") != ""
+	var isInteractiveInputsCacheDirAvailable bool = false
+	var interactiveInputsCacheDir string
+	var inputFieldLabelToCacheDirMapping map[string]string = make(map[string]string)
 
 	if githubActionWorkingDir == "" {
 		cfg.Action.Errorf("GITHUB_WORKSPACE not found")
@@ -73,6 +78,50 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 		cfg.Action.Debugf("Discord Notifier Verification Succeeded")
 	}
 
+	// Create cache directory mapping for all the file and
+	// multifile input fields defined in the config. We'll
+	// use this hold all the files uploaded by the user
+	// during the action run
+	if cfg.Fields != nil {
+		var err error
+		var baseCacheDir string = fmt.Sprintf("%s/.__interactive-inputs-cache", os.Getenv("GITHUB_WORKSPACE"))
+
+		// check fields for file and multifile input fields
+		for _, v := range cfg.Fields.Fields {
+
+			// skip non-file and multifile input fields
+			if v.Properties.Type != "file" && v.Properties.Type != "multifile" {
+				continue
+			}
+
+			// create base cache directory for holding uploaded files
+			// if it doesn't exist
+			if !isInteractiveInputsCacheDirAvailable {
+				// create temp directory to hold uploaded files
+				err = os.MkdirAll(baseCacheDir, os.ModePerm)
+				if err != nil {
+					cfg.Action.Errorf("Unable to base cache directory: %v", zap.Error(err))
+					return err
+				}
+
+				cfg.Action.Debugf("Base cache directory created: %s", interactiveInputsCacheDir)
+				isInteractiveInputsCacheDirAvailable = true
+			}
+
+			// create sub-directory for holding uploaded files for
+			// for the current input field
+			cfg.Action.Debugf("Creating cache sub-directory for %s uploads", v.Label)
+			inputFieldCacheDir, err := os.MkdirTemp(baseCacheDir, fmt.Sprintf("%s-%d", v.Label, time.Now().UnixNano()))
+			if err != nil {
+				cfg.Action.Errorf("Unable to create temp directory: %v", zap.Error(err))
+				return err
+			}
+
+			// add mapping of input field label to cache sub-directory
+			inputFieldLabelToCacheDirMapping[v.Label] = inputFieldCacheDir
+		}
+	}
+
 	/// Handlers
 	uiHandler := webui.NewWebAppHandler(&webui.NewWebAppHandlerRequest{
 		EmbeddedContent:               embeddedContent,
@@ -80,7 +129,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 		Config:                        cfg,
 	})
 
-	portalEventHandler := portal.NewHandler(cfg.Action, isRunningLocal, embeddedContent, embeddedContentFilePathPrefix, cfg.GithubToken)
+	portalEventHandler := portal.NewHandler(cfg.Action, isRunningLocal, embeddedContent, embeddedContentFilePathPrefix, cfg.GithubToken, inputFieldLabelToCacheDirMapping)
 
 	/// Routes
 	r := mux.NewRouter()

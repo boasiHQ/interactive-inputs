@@ -19,6 +19,8 @@ var (
 		"boolean",
 		"select",
 		"multiselect",
+		"file",
+		"multifile",
 	}
 )
 
@@ -56,6 +58,7 @@ type FieldProperties struct {
 	DefaultValue             string   `yaml:"defaultValue"`
 	ReadOnly                 bool     `yaml:"readOnly"`
 	DisableAutoCopySelection bool     `yaml:"disableAutoCopySelection"`
+	AcceptedFileTypes        []string `yaml:"acceptedFileTypes"`
 }
 
 // MarshalStringIntoValidFieldsStruct takes a YAML-formatted string representation of a Fields
