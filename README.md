@@ -63,7 +63,7 @@ To send notifications to Slack/ Discord, you will need to do the  following:
 3) Pass the token or webhook to the action with `notifier-slack-token` or `notifier-discord-webhook`, respectively.
 
 <details>
-<summary><h4 id="creating-a-slack-integration">Creating a Slack integration</h4></summary><br><br>
+<summary><h4 id="creating-a-slack-integration">Creating a Slack integration</h4></summary><br>
 
 <img src="./assets/notifier-slack-message.png" alt="Integration - Slack" width="400"/>
 
@@ -88,7 +88,7 @@ To create a Slack integration, follow these steps:
 </details>
 
 <details>
-<summary><h4 id="creating-a-discord-integration">Creating a Discord integration</h4></summary><br><br>
+<summary><h4 id="creating-a-discord-integration">Creating a Discord integration</h4></summary><br>
 
 <img src="./assets/notifier-discord-message.png" alt="Integration - Discord" width="400"/>
 
@@ -112,7 +112,7 @@ To create a Discord integration, follow these steps:
 To get started, below is an example of how you can leverage this action in your workflow file
 
 <details>
-<summary><b> •• Complete example workflow •• </b></summary><br><br>
+<summary><b> •• Complete example workflow •• </b></summary><br>
 
 
 Below is an example of how you can leverage this action in your workflow file, you will neeed to replace the `NGROK_AUTHTOKEN` secret with your own, and if you wish to send notifications to Slack/ Discord, you will need to replace the `SLACK_TOKEN` and `DISCORD_WEBHOOK` secrets with your own as well as enabling the `notifier-slack-enabled` and `notifier-discord-enabled` inputs.
@@ -231,7 +231,7 @@ The input fields shape the user interface of the interactive input. The input fi
 The `fields` property is an array of objects, each object representing a field. Each field type has its properties, some unique to the particular field type. See below the supported field types and their respective properties.
 
 <details>
-<summary><h3 id="multifile-input---multifile">Multifile Input - <code>multifile</code></h3></summary><br><br>
+<summary><h3 id="multifile-input---multifile">Multifile Input - <code>multifile</code></h3></summary><br>
 
 
 The `multifile` input field is used to allow the user to upload multiple files. It is the most commonly used to allow the 
@@ -258,7 +258,7 @@ fields:
 </details>
 
 <details>
-<summary><h3 id="file-input---file">File Input - <code>file</code></h3></summary><br><br>
+<summary><h3 id="file-input---file">File Input - <code>file</code></h3></summary><br>
 
 
 The `file` input field is used to capture a file input from the user. It is the most commonly used to allow the 
@@ -285,7 +285,7 @@ fields:
 
 
 <details>
-<summary><h3 id="text-input---text">Text Input - <code>text</code></h3></summary><br><br>
+<summary><h3 id="text-input---text">Text Input - <code>text</code></h3></summary><br>
 
 
 
@@ -309,7 +309,7 @@ fields:
 
 
 <details>
-<summary><h3 id="textarea-input---textarea">Textarea Input - <code>textarea</code></h3></summary><br><br>
+<summary><h3 id="textarea-input---textarea">Textarea Input - <code>textarea</code></h3></summary><br>
 
 The textarea input field is used to capture or display ( set `readOnly` to `true`) multi-line text input from the user. It is commonly used to capture long text input from the user.
 
@@ -334,7 +334,7 @@ fields:
 
 
 <details>
-<summary><h3 id="number-input---number">Number Input - <code>number</code></h3></summary><br><br>
+<summary><h3 id="number-input---number">Number Input - <code>number</code></h3></summary><br>
 
 
 The number input field is used to capture numerical input from the user.
@@ -357,7 +357,7 @@ fields:
 </details>
 
 <details>
-<summary><h3 id="boolean-input---boolean">Boolean Input - <code>boolean</code></h3></summary><br><br>
+<summary><h3 id="boolean-input---boolean">Boolean Input - <code>boolean</code></h3></summary><br>
 
 
 The boolean input field captures a boolean input from the user (`True` or `False`). It is commonly used to determine where the expected output should be `True` or `False` from the user.
@@ -377,7 +377,7 @@ fields:
 </details>
 
 <details>
-<summary><h3 id="select-input---select">Select Input - <code>select</code></h3></summary><br><br>
+<summary><h3 id="select-input---select">Select Input - <code>select</code></h3></summary><br>
 
 
 The select input field captures a single selection from a list of options from the user. It is commonly used to capture when you wish to scope the user's choice for a particular set of options.
@@ -407,7 +407,7 @@ fields:
 
 
 <details>
-<summary><h3 id="multi-select-input---multiselect">Multi-Select Input - <code>multiselect</code></h3></summary><br><br>
+<summary><h3 id="multi-select-input---multiselect">Multi-Select Input - <code>multiselect</code></h3></summary><br>
 
 The multi-select input field captures multiple selections from a list of user options. It is commonly used to capture when you wish to scope the user's selection for a particular set of options.
 
