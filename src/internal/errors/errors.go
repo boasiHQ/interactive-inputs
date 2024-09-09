@@ -49,4 +49,7 @@ var (
 
 	// ErrGithubTokenNotProvided is returned when the github token is not provided
 	ErrGithubTokenNotProvided = errors.New("GithubTokenNotProvided")
+
+	// ErrDuplicateFieldLabelDetected is returned when the same field label is detected in the input data
+	ErrDuplicateFieldLabelDetected = errors.New("DuplicateFieldLabelDetected")
 )

@@ -1,7 +1,7 @@
-name: 'Test Interactive Inputs [Pull Request]'
+name: "Test Interactive Inputs [Pull Request]"
 
 on:
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   interactive-inputs:
@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@ii-i3-improve-message-formatting-and-introduce-thread-messaging-support
+        uses: boasihq/interactive-inputs@ii-i5-add-file-field-typ
         with:
           ngrok-authtoken: ${{ secrets.NGROK_AUTHTOKEN }}
           notifier-slack-enabled: "false"
@@ -22,7 +22,7 @@ jobs:
           notifier-discord-enabled: "false"
           notifier-discord-webhook: ${{ secrets.DISCORD_WEBHOOK }}
           timeout: 160
-          title: 'A batch of 10 feature flags have been added to be deployed. Would you like to proceed?'
+          title: "A batch of 10 feature flags have been added to be deployed. Would you like to proceed?"
           interactive: |
             fields:
               - label: continue-roll-out
@@ -38,6 +38,12 @@ jobs:
                   type: multiselect
                   choices: 
                     ["Payments", "Bookings", "Notifications", "Support"]
+              - label: uploaded
+                properties:
+                  display: Upload desired files
+                  type: multifile
+                  required: true
+                  description: Upload desired files that are to be uploaded to the the runner for processing
               - label: notes
                 properties:
                   display: Additional note(s)

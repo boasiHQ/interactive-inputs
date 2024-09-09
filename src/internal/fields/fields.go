@@ -68,6 +68,7 @@ type FieldProperties struct {
 // returns an error.
 func MarshalStringIntoValidFieldsStruct(fieldsString string, action *githubactions.Action) (*Fields, error) {
 	var fields Fields
+	var detectedFieldLabels []string = make([]string, 0)
 	fields.Fields = make([]Field, 0)
 
 	err := yaml.Unmarshal([]byte(fieldsString), &fields)
@@ -109,6 +110,15 @@ func MarshalStringIntoValidFieldsStruct(fieldsString string, action *githubactio
 
 		// make sure the type is lower case
 		fields.Fields[i].Properties.Type = toolbox.StringStandardisedToLower(field.Properties.Type)
+
+		// check if the field label has already been detected
+		if toolbox.StringInSlice(field.Label, detectedFieldLabels) {
+			action.Errorf("Duplicate field label detected: '%s'", field.Label)
+			return nil, errors.ErrDuplicateFieldLabelDetected
+		}
+
+		// add the field label to the detected field labels
+		detectedFieldLabels = append(detectedFieldLabels, field.Label)
 	}
 
 	return &fields, nil
