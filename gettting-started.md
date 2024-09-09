@@ -24,9 +24,16 @@ env \
       readOnly: true
   - label: custom-file
     properties:
+      display: Choose a file
       type: file
+      description: Select the media you wish to send to the channel
+      acceptedFileTypes:
+        - image/png
+        - video/mp4
   - label: custom-files
     properties:
+      display: Choose at least one file or more
+      required: true
       type: multifile
   - label: name
     properties:
@@ -94,7 +101,7 @@ env \
   'INPUT_GITHUB-TOKEN=github-secret-token' \
   'INPUT_NGROK-AUTHTOKEN=1234567890' \
   'IAIP_LOCAL_RUN=true' \
-  'IAIP_SKIP_CONFIG_PARSE=1' \
+  'IAIP_SKIP_CONFIG_PARSE=0' \
   go run main.go
 ```
 
@@ -126,9 +133,16 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
       readOnly: true
   - label: custom-file
     properties:
+      display: Choose a file
       type: file
+      description: Select the media you wish to send to the channel
+      acceptedFileTypes:
+        - image/png
+        - video/mp4
   - label: custom-files
     properties:
+      display: Choose at least one file or more
+      required: true
       type: multifile
   - label: name
     properties:
@@ -195,7 +209,7 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
   'INPUT_GITHUB-TOKEN=github-secret-token' \
   'INPUT_NGROK-AUTHTOKEN=1234567890' \
   'IAIP_LOCAL_RUN=true' \
-  'IAIP_SKIP_CONFIG_PARSE=1' \
+  'IAIP_SKIP_CONFIG_PARSE=0' \
   go run main.go
 ```
 
