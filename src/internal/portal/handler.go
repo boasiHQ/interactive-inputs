@@ -219,8 +219,17 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 	var successFileUploads []string = []string{}
 	var failedFileUploads []string = []string{}
 	var cleanExistingCacheDir bool = true
+	var cacheCleanOverviewTmpl string = `
+Cache clean overview:
+	• Status: %s
+	• Total Files: %d
+	• Total Files Deleted: %d
+	• Deleted Files: %+v
+	• Failed Files: %+v
+	• Error: %+v
+				`
 
-	h.actionPkg.Infof("Uploading File(s)")
+	h.actionPkg.Infof("Uploading File(s)...")
 
 	r.ParseMultipartForm(10 << 20)
 
@@ -238,14 +247,14 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 	files := form.File
 
 	totalFiles = len(files)
-	h.actionPkg.Infof("Total pushed files: %d", totalFiles)
+	h.actionPkg.Debugf("Total pushed files: %d", totalFiles)
 
 	// Get a reference to the parsed file
 	for k, _ := range files {
 
 		fileCount++
 
-		h.actionPkg.Infof("[%d of %d] Initiating file upload flow", fileCount, totalFiles)
+		h.actionPkg.Infof("  • [%d of %d] Initiating file upload flow", fileCount, totalFiles)
 
 		file, handler, err := r.FormFile(k)
 		if err != nil {
@@ -278,19 +287,11 @@ func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 		if cleanExistingCacheDir {
 			h.actionPkg.Debugf("Cleaning existing cache dir for input field: %s", inputFieldLabel)
 
-			status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, err := h.cleanUpCacheDir(inputFieldLabel)
+			status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, err := h.cleanUpCacheDir(inputFieldLabel, true)
 			if err != nil && err.Error() == ErrKeyUnableToRemoveCacheDirContents {
 				failedFileUploads = append(failedFileUploads, handler.Filename)
 
-				h.actionPkg.Debugf(`
-Cache clean overview:
-	• Status: %s
-	• Total Files: %d
-	• Total Files Deleted: %d
-	• Deleted Files: %+v
-	• Failed Files: %+v
-	• Error: %+v
-				`, status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, err)
+				h.actionPkg.Debugf(cacheCleanOverviewTmpl, status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, err)
 
 				//nolint will set up default fallback later
 				getBaseResponseHandler().NewHTTPErrorResponse(w, errors.New(ErrKeyUnableToRemoveCacheDirContents),
@@ -304,15 +305,7 @@ Cache clean overview:
 
 			if err != nil {
 
-				h.actionPkg.Debugf(`
-Cache clean overview:
-	• Status: %s
-	• Total Files: %d
-	• Total Files Deleted: %d
-	• Deleted Files: %+v
-	• Failed Files: %+v
-	• Error: %+v
-				`, status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, err)
+				h.actionPkg.Debugf(cacheCleanOverviewTmpl, status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, err)
 
 				//nolint will set up default fallback later
 				getBaseResponseHandler().NewHTTPErrorResponse(w, err)
@@ -340,7 +333,7 @@ Cache clean overview:
 
 	}
 
-	h.actionPkg.Infof("Successfully uploaded %d of %d files", len(successFileUploads), totalFiles)
+	h.actionPkg.Infof("Successfully uploaded %d of %d files!\n\n", len(successFileUploads), totalFiles)
 
 	response := UploadToPortalResponse{
 		UploadedFiles: successFileUploads,
@@ -382,7 +375,7 @@ func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, err := h.cleanUpCacheDir(inputFieldLabel)
+	status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, err := h.cleanUpCacheDir(inputFieldLabel, false)
 	if err != nil && err.Error() == ErrKeyUnableToRemoveCacheDirContents {
 
 		//nolint will set up default fallback later
@@ -403,7 +396,7 @@ func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.actionPkg.Infof("Cache directory contents reseted for input field label: %s", inputFieldLabel)
+	h.actionPkg.Infof("Cache directory contents reseted for input field label: %s\n\n", inputFieldLabel)
 	//nolint will set up default fallback later
 	getBaseResponseHandler().NewHTTPDataResponse(w, http.StatusOK, &ResetUploadResponse{
 		Status:             status,
@@ -415,7 +408,7 @@ func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 // cleanUpCacheDir removes all files from the cache directory for the given input field name
-func (h *Handler) cleanUpCacheDir(inputFieldLabel string) (string, int, int, []string, []string, error) {
+func (h *Handler) cleanUpCacheDir(inputFieldLabel string, enableDebugOutput bool) (string, int, int, []string, []string, error) {
 
 	var (
 		status             string
@@ -433,7 +426,13 @@ func (h *Handler) cleanUpCacheDir(inputFieldLabel string) (string, int, int, []s
 		return status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, errors.New(ErrKeyNoInputFieldCacheDirFound)
 	}
 
-	h.actionPkg.Infof("Initiating the reseting of the cache directory contents for the input field label: %s (%s)", inputFieldLabel, cacheDir)
+	initMessage := fmt.Sprintf("Initiating the reseting of the cache directory contents for the input field label: %s (%s)", inputFieldLabel, cacheDir)
+	if enableDebugOutput {
+		h.actionPkg.Debugf(initMessage)
+	}
+	if !enableDebugOutput {
+		h.actionPkg.Infof(initMessage)
+	}
 
 	// Remove the cache directory contents for the given input field name
 	readCacheDir, err := os.ReadDir(cacheDir)
@@ -444,14 +443,26 @@ func (h *Handler) cleanUpCacheDir(inputFieldLabel string) (string, int, int, []s
 	}
 
 	if len(readCacheDir) == 0 {
-		h.actionPkg.Infof("No cache directory contents found for input field label: %s", inputFieldLabel)
+		noContentsMessage := fmt.Sprintf("No cache directory contents found for input field label: %s", inputFieldLabel)
+		if enableDebugOutput {
+			h.actionPkg.Debugf(noContentsMessage)
+		}
+		if !enableDebugOutput {
+			h.actionPkg.Infof(noContentsMessage)
+		}
 
 		return status, totalFilesToDelete, totalFilesDeleted, deletedFiles, failedFiles, nil
 	}
 
 	totalFilesToDelete = len(readCacheDir)
 
-	h.actionPkg.Infof("Cache directory contents (%d) found for input field label: %s", totalFilesToDelete, inputFieldLabel)
+	contentFoundMessage := fmt.Sprintf("Cache directory contents (%d) found for input field label: %s", totalFilesToDelete, inputFieldLabel)
+	if enableDebugOutput {
+		h.actionPkg.Debugf(contentFoundMessage)
+	}
+	if !enableDebugOutput {
+		h.actionPkg.Infof(contentFoundMessage)
+	}
 
 	for _, content := range readCacheDir {
 		contentFullPath := path.Join([]string{cacheDir, content.Name()}...)
