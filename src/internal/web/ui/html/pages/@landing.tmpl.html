@@ -61,7 +61,79 @@
                             {{$inputDefaultValue := $interactiveInput.Properties.DefaultValue }}
                             {{$inputReadOnly := $interactiveInput.Properties.ReadOnly }}
                             {{$inputDisableAutoCopySelection := $interactiveInput.Properties.DisableAutoCopySelection }}
+                            {{$inputAcceptedFileTypes := $interactiveInput.Properties.AcceptedFileTypes }}
 
+                            {{  if or (eq $inputType "multifile") (eq $inputType "file") }}
+                              <div class="sm:col-span-2" x-data="{ files: null }">
+                                  <span class="flex mr-2">
+                                    <label for="{{ $inputLabel }}-label" class="block text-sm font-semibold leading-6 text-gray-900">{{ $inputDisplay }}</label>
+                                    {{ if $inputDescription }}
+                                      <div class="dropdown dropdown-right">
+                                          <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]">
+                                            <svg
+                                              tabindex="0"
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                              class="h-4 w-4 stroke-current">
+                                              <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                          </div>
+                                          <div
+                                            tabindex="0"
+                                            class="card compact dropdown-content bg-base-100 rounded-box z-[1] w-64 shadow">
+                                            <div tabindex="0" class="card-body">
+                                              <h2 class="card-title">More info?</h2>
+                                              <p>{{ $inputDescription }}</p>
+                                            </div>
+                                          </div>
+                                      </div>
+                                    {{ end }}
+                                  </span>
+                                  <div class="mt-2.5 flex flex-col">
+                                    <span  class="flex flex-col md:flex-row md:justify-between">
+                                      <label id="{{ $inputLabel }}-label" for="{{ $inputLabel }}" class="input input-bordered w-full md:w-[80%] max-w-xl md:max-w-[80%] content-center overflow-y-auto">
+                                        <input 
+                                        type="file" name="{{ $inputLabel }}" id="{{ $inputLabel }}"
+                                        x-on:change="files = $event.target.files.length > 0 ? Object.values($event.target.files) : files; $event.target.files.length > 0 ? submitFilesForUpload(files, '{{ $inputLabel }}') : console.log('No file selected')"
+                                        style="opacity:0; filter:alpha(opacity=0);"
+                                        {{ if $inputRequired }} required {{ end }}
+                                        {{ if $inputAcceptedFileTypes }}  accept="{{range $inputAcceptedFileTypes}}{{.}},{{end}}" {{end}}
+                                        class="absolute"
+                                        {{  if eq $inputType "multifile"  }}multiple{{end}}
+                                        >
+                                        <span  x-html="files ? files.map(file => `<span class='badge badge-ghost'>${file.name}</span>`).join(' ') : '{{  if eq $inputType "multifile"  }}Tap to select one or more files{{else}}Tap to select your file{{end}}'"></span>
+                                      </label>
+                                    
+                                      <span class="flex md:ml-4 space-x-2">
+                                        <div 
+                                          form="{{ $inputLabel }}-form"
+                                          class="btn btn-ghost btn-sm mt-3 md:mt-0 self-start md:self-center"
+                                          @click="requestInputFieldReset('{{ $inputLabel }}'); files = null; document.querySelector('#{{ $inputLabel }}').value = ''; " 
+                                          :class="{ ' btn-disabled': !files || !files.length }"
+                                          >
+                                          Reset
+                                        </div>
+                                      </span>
+                                    </span>
+
+                                    {{ if $inputAcceptedFileTypes }} 
+                                      <div class="tooltip mt-3" data-tip="{{range $inputAcceptedFileTypes}}{{.}} {{end}}">
+                                        <span class="flex flex-row text-xs md:max-w-[80%] truncate">
+                                          <p class="mr-1 text-wrap line-clamp-2 text-left">
+                                            <b class="items-center text-red-500">*</b><b class="font-semibold">Allowed file types:</b>
+                                            {{range $inputAcceptedFileTypes}}{{.}} {{end}}
+                                          </p>
+                                        </span>
+                                      </div> 
+                                    {{end}}
+                                  </div>
+                              </div>
+                            {{end}}
 
                             {{ if eq $inputType "text" }}
                               <div class="sm:col-span-2">
@@ -323,7 +395,9 @@
                     <!-- ==== Reminder End ==== -->
                     <div class="mt-8 flex flex-col justify-center gap-y-3 items-center">
                         <a hx-post="/cancel" hx-target="#form-interactive-inputs" type="submit" class="btn btn-ghost btn-md btn-wide ">Cancel</a>
-                        <button type="submit" class="btn btn-wide btn-md">Submit</button>
+                        <button 
+                        form="form-interactive-inputs"
+                        type="submit" class="btn btn-wide btn-md">Submit</button>
                     </div>
                 </form>
             </div>
@@ -355,6 +429,114 @@
 
                   return selectedOption
                 };
+
+                // requestInputFieldReset is a function that handles resetting the file cache for a given input label.
+                const requestInputFieldReset = (inputLabel) => {
+
+                    // If the selected option is undefined or empty, return early.
+                    if (inputLabel === undefined || inputLabel === '') {
+                      return;
+                    }
+
+                    toasty.push({
+                      title: `Reset File Cache - Initiated`,
+                      content: `Reseting provided file(s).`
+                    });
+
+                    fetch(`/api/v1/reset/${inputLabel}`, {
+                      method: 'DELETE',
+                    })
+                      .then(response => {
+                        if (!response.ok) {
+
+                          console.log(response)
+                          toasty.push({
+                            title: "`Reset File Cache - Error",
+                            content: "Please try again.",
+                            style: "error"
+                          });
+                          throw new Error('Network response was not ok');
+                        }
+
+                        return response.json();
+                      })
+                      .then(data => {
+                        console.log('File(s) cleared successfully:', data);
+                        setTimeout(() => {
+                          toasty.push({
+                            title: "Reset File Cache - Success",
+                            content: "The previously provided file(s) are removed.",
+                            style: "success",
+                          });;
+                        }, 1000);
+                      })
+                      .catch(error => {
+                        console.error('Failed to clear file(s):', error);
+                        setTimeout(() => {
+                          toasty.push({
+                            title: "Reset File Cache - Failed",
+                            content: `Something went wrong while attempting to clear the provided files: ${error}`,
+                            style: "error"
+                          });
+                        }, 1000);
+                      });
+                  }
+
+                // submiteFilesForUpload handles the file upload process.
+                const submitFilesForUpload = (files, inputLabel="files") => {
+                  if (!files || files.length === 0) return;
+
+                  const indexKeyPrefix = `${inputLabel}__index__`;
+
+                  const formData = new FormData();
+                  let i = 0;
+                  for (const file of files) {
+                    formData.append(`${indexKeyPrefix}${i}`, file);
+
+                    i++;
+                  }
+
+                  toasty.push({
+                      title: `File Upload - Initiated`,
+                      content: `Uploading <b>${files.length}</b> file(s).`
+                  });
+
+                  fetch('/api/v1/upload', {
+                    method: 'POST',
+                    body: formData,
+                  })
+                    .then(response => {
+                      if (!response.ok) {
+                        toasty.push({
+                          title: "File Upload - Error",
+                          content: "Please try again.",
+                          style: "error"
+                        });
+                        throw new Error('Network response was not ok');
+                      }
+                      return response.json();
+                    })
+                    .then(data => {
+                      console.log('File(s) uploaded successfully:', data);
+                      setTimeout(() => {
+                        toasty.push({
+                          title: "File Upload - Success",
+                          content: `<b>${files.length}</b> file(s) ${files.length > 1 ? 'have' : 'has'} been uploaded.`,
+                          style: "success",
+                        });;
+                      }, 1000);
+                    })
+                    .catch(error => {
+                      console.error('Failed to upload file(s):', error);
+                      setTimeout(() => {
+                        toasty.push({
+                          title: "File Upload - Failed",
+                          content: `Failed to upload the file(s): ${error}`,
+                          style: "error"
+                        });
+                      }, 1000);
+                    });
+                }
             </script>
            
             <!-- ===== Footer End ===== -->

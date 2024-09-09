@@ -13,7 +13,7 @@ env \
   'GITHUB_API_URL=https://api.github.com' \
   'GITHUB_REPOSITORY=blend/repo-that-uses-an-action' \
   "GITHUB_ACTOR=$(whoami)" \
-  "GITHUB_WORKSPACE=$(pwd)" \
+  "GITHUB_WORKSPACE=$(pwd)/.." \
   "INPUT_TITLE=Start something exciting, dynamically..." \
   'INPUT_INTERACTIVE=fields:
   - label: overview
@@ -22,6 +22,19 @@ env \
       description: Information on what this action does
       defaultValue: "This example is a powerful demonstration of how you can utilize the boasiHQ/interactive-inputs action to tailor the dynamic portal to your specific needs and desired output."
       readOnly: true
+  - label: custom-file
+    properties:
+      display: Choose a file
+      type: file
+      description: Select the media you wish to send to the channel
+      acceptedFileTypes:
+        - image/png
+        - video/mp4
+  - label: custom-files
+    properties:
+      display: Choose at least one file or more
+      required: true
+      type: multifile
   - label: name
     properties:
       display: What is your name?
@@ -88,7 +101,7 @@ env \
   'INPUT_GITHUB-TOKEN=github-secret-token' \
   'INPUT_NGROK-AUTHTOKEN=1234567890' \
   'IAIP_LOCAL_RUN=true' \
-  'IAIP_SKIP_CONFIG_PARSE=1' \
+  'IAIP_SKIP_CONFIG_PARSE=0' \
   go run main.go
 ```
 
@@ -109,7 +122,7 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
   "GITHUB_ACTOR=$(whoami)" \
   'GITHUB_API_URL=https://api.github.com' \
   'GITHUB_REPOSITORY=blend/repo-that-uses-an-action' \
-  "GITHUB_WORKSPACE=$(pwd)" \
+  "GITHUB_WORKSPACE=$(pwd)/.." \
   "INPUT_TITLE=Start something exciting, dynamically..." \
   'INPUT_INTERACTIVE=fields:
   - label: overview
@@ -118,6 +131,19 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
       description: Information on what this action does
       defaultValue: "This example is a powerful demonstration of how you can utilize the boasiHQ/interactive-inputs action to tailor the dynamic portal to your specific needs and desired output."
       readOnly: true
+  - label: custom-file
+    properties:
+      display: Choose a file
+      type: file
+      description: Select the media you wish to send to the channel
+      acceptedFileTypes:
+        - image/png
+        - video/mp4
+  - label: custom-files
+    properties:
+      display: Choose at least one file or more
+      required: true
+      type: multifile
   - label: name
     properties:
       display: What is your name?
@@ -183,7 +209,7 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
   'INPUT_GITHUB-TOKEN=github-secret-token' \
   'INPUT_NGROK-AUTHTOKEN=1234567890' \
   'IAIP_LOCAL_RUN=true' \
-  'IAIP_SKIP_CONFIG_PARSE=1' \
+  'IAIP_SKIP_CONFIG_PARSE=0' \
   go run main.go
 ```
 

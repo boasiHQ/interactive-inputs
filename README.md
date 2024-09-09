@@ -1,6 +1,6 @@
 # Interactive Inputs
 
-Enhance your GitHub Action workflows with in-workflow/action inputs! This action enables dynamic workflows that can adapt to user input.
+Interactive Inputs now enables GitHub Actions to support runtime inputs for workflows and composite actions. This action allows you to leverage various input types, including but not limited to text, multiple choice, and even uploading files, creating dynamic workflows that adapt to your CI/CD needs.
 
 ## Summary
 
@@ -18,7 +18,7 @@ If you want to contribute, fix a bug, or play around with this action locally, p
 | name | description | required | default |
 | --- | --- | --- | --- |
 | `title` | <p>The title of the interactive inputs form</p> | `false` | `""` |
-| `interactive` | <p>The representation (in yaml) of fields to be displayed</p> | `true` | `fields:   - label: random-string     properties:       display: Enter a random string       type: text       description: A random string up to 20 characters long       maxLength: 20       required: false   - label: choice     properties:       display: Select a monitoring tool       type: select       description: Available options to chose from       choices: ["datadog", "sentry", "grafana"]       required: true ` |
+| `interactive` | <p>The representation (in yaml) of fields to be displayed</p> | `true` | `fields:   - label: requested-files     properties:       display: Upload desired files       type: multifile       required: true       description: Upload desired files that are to be uploaded to the runner for processing   - label: random-string     properties:       display: Enter a random string       type: text       description: A random string up to 20 characters long       maxLength: 20       required: false   - label: choice     properties:       display: Select a monitoring tool       type: select       description: Available options to chose from       choices: ["datadog", "sentry", "grafana"]       required: true ` |
 | `timeout` | <p>The timeout in seconds for the interactive inputs form</p> | `false` | `300` |
 | `ngrok-authtoken` | <p>The authtoken for ngrok used to expose the interactive inputs form</p> | `true` | `""` |
 | `github-token` | <p>The token used to authenticate with GitHub API</p> | `true` | `${{ github.token }}` |
@@ -35,14 +35,11 @@ If you want to contribute, fix a bug, or play around with this action locally, p
 
 To see the full list of supported input fields for the `interactive` input, see the [Input Fields Types](#input-fields-types) section below.
 
-### Screenshots
+### See In Action
 
-Here are some screenshots of the Interactive Input action... in action 👀😔:
+Here are some examples of the Interactive Input action... in action 👀😔:
 
-<img src="./assets/github-action-definition-with-output-step.png" alt="GitHub Action Workflow Setup" width="400"/>
-<img src="./assets/interactive-inputs-portal-page-1.png" alt="Interactive Input Portal - Rendered" width="400"/>
-<img src="./assets/interactive-inputs-portal-page-2.png" alt="Interactive Input Portal - Submitted" width="400"/>
-<img src="./assets/github-action-after-run-with-outputs.png" alt="GitHub Action - Example Output & Log messages from Interactive Inputs" width="400"/>
+<img src="./assets/InteractiveInputs_LiveFileInputTypeSupport.gif" alt="GitHub Action Complete flow" width="400"/>
 <img src="./assets/notifier-slack-message.png" alt="Integration - Slack" width="400"/>
 <img src="./assets/notifier-discord-message.png" alt="Integration - Discord" width="400"/>
 
@@ -52,7 +49,7 @@ Here are some screenshots of the Interactive Input action... in action 👀😔:
 To get started, there are three main steps:
 
 1. Sign up to NGROK and get your auth token if you do not already have one by [**clicking here**](https://dashboard.ngrok.com/signup)
-2. Add this action `boasihq/interactive-inputs@v2.1.0` to your workflow file. See [the example below](#example) for more information.
+2. Add this action `boasihq/interactive-inputs@v2` to your workflow file. See [the example below](#example) for more information.
 3. Use the predictable output variables from your interactive input portal to create dynamic workflows.
 
 > Note, this action requires an ARM64 or AMD64 (x86) runner to run i.e. `ubuntu-latest`
@@ -65,8 +62,8 @@ To send notifications to Slack/ Discord, you will need to do the  following:
 2) Ensure you've enabled `notifier-slack-enabled` or `notifier-discord-enabled` respectively.
 3) Pass the token or webhook to the action with `notifier-slack-token` or `notifier-discord-webhook`, respectively.
 
-
-#### Creating a Slack integration
+<details>
+<summary><h4 id="creating-a-slack-integration">Creating a Slack integration</h4></summary><br>
 
 <img src="./assets/notifier-slack-message.png" alt="Integration - Slack" width="400"/>
 
@@ -88,7 +85,10 @@ To create a Slack integration, follow these steps:
 >
 > <img src="./assets/notifier-slack-message-to-thread.png" alt="Integration - Discord" width="400"/>
 
-#### Creating a Discord integration
+</details>
+
+<details>
+<summary><h4 id="creating-a-discord-integration">Creating a Discord integration</h4></summary><br>
 
 <img src="./assets/notifier-discord-message.png" alt="Integration - Discord" width="400"/>
 
@@ -104,9 +104,20 @@ To create a Discord integration, follow these steps:
 >
 > <img src="./assets/notifier-discord-message-to-thread.png" alt="Integration - Discord" width="400"/>
 
+</details>
+
+
 ## Example
 
-To get started, below is an example of how you can leverage this action in your workflow file:
+To get started, below is an example of how you can leverage this action in your workflow file
+
+<details>
+<summary><b> •• Complete example workflow •• </b></summary><br>
+
+
+Below is an example of how you can leverage this action in your workflow file, you will neeed to replace the `NGROK_AUTHTOKEN` secret with your own, and if you wish to send notifications to Slack/ Discord, you will need to replace the `SLACK_TOKEN` and `DISCORD_WEBHOOK` secrets with your own as well as enabling the `notifier-slack-enabled` and `notifier-discord-enabled` inputs.
+
+
 
 ```yaml
 name: '[Example] Interactive Inputs'
@@ -124,7 +135,7 @@ jobs:
     steps:
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@v2.1.0
+        uses: boasihq/interactive-inputs@v2
         with:
           ngrok-authtoken: ${{ secrets.NGROK_AUTHTOKEN }}
           notifier-slack-enabled: "false"
@@ -149,15 +160,19 @@ jobs:
                   description: Select the domains to exclude from the roll out
                   display: Exclude domain(s)
                   type: multiselect
-                  disableAutoCopySelection: false
                   choices: 
                     ["Payments", "Bookings", "Notifications", "Support"]
+              - label: requested-files
+                properties:
+                  display: Upload desired files
+                  type: multifile
+                  required: true
+                  description: Upload desired files that are to be uploaded to the runner for processing
               - label: notes
                 properties:
                   display: Additional note(s)
                   type: textarea
                   description: Additional notes on why this decision has been made are to be added to the audit trail.
-
 
       - name: Display Outputs
         shell: bash
@@ -166,12 +181,24 @@ jobs:
           echo -e "\n==============================\n"
           echo "Detected Outputs: ${{join(steps.interactive-inputs.outputs.*, '\n')}}"
           echo -e "\n==============================\n"
-```         
+
+      - name: List the uploaded files in the directory
+        shell: bash
+        run: |
+          echo "Display uploaded files"
+          echo -e "\n==============================\n"
+          ls -la ${{ steps.interactive-inputs.outputs.requested-files }} # Use the label of the multifile/file field as the key to get the uploaded file directory
+          echo -e "\n==============================\n"
+
+```  
+
+</details>       
 
 ### Key points
 
 When using this action, here are a few key points to note:
 
+- The [`multifile` input field type](#multifile-input---multifile) and the [`file` input field type](#file-input---file) will provide the path to where the uploaded files are located on the runner. You can then use this information in later stages of your workflow.
 - To enable the external notifications, you will need to set the `notifier-slack-enabled` or `notifier-discord-enabled` property to `true` in the `with` object. Follow the [**Creating a Slack integration**](#creating-a-slack-integration) or [**Creating a Discord integration**](#creating-a-discord-integration) sections above for more information.
   - To send a message to a thread, you will need to set the `notifier-slack-thread-ts` or `notifier-discord-thread-id` property to the thread timestamp or thread ID, respectively.
 - The portal will display fields in the order defined in the `fields` array.
@@ -190,7 +217,7 @@ The input fields shape the user interface of the interactive input. The input fi
       ...
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@v2.1.0
+        uses: boasihq/interactive-inputs@v2
         with:
           ...
           interactive: |
@@ -203,7 +230,64 @@ The input fields shape the user interface of the interactive input. The input fi
 
 The `fields` property is an array of objects, each object representing a field. Each field type has its properties, some unique to the particular field type. See below the supported field types and their respective properties.
 
-### Text Input - `text`
+<details>
+<summary><h3 id="multifile-input---multifile">Multifile Input - <code>multifile</code></h3></summary><br>
+
+
+The `multifile` input field is used to allow the user to upload multiple files. It is the most commonly used to allow the 
+user to upload a collection of files that can be used in the workflow.
+
+> Note: unlike the other input fields, the `multifile` input field's output points to a direcry (the file cache), not the direct value/input provided by the user.
+>
+> The `acceptedFileTypes` property can be represented as a hyphenated list of strings or also an array of strings, i.e. `["image/*", "video/*"]`. [Click here](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#unique_file_type_specifiers) for more information on file type specifiers.
+
+#### Example
+
+```yaml
+fields:
+  - label: requested-files # Required
+    properties:
+      display: Upload desired files # Optional: if not specified, the title for the field will not be displayed on the portal
+      type: file # Required
+      required: true # Optional: If not added, will default to `false`
+      description: Upload desired files that are to be uploaded to the runner for processing # Optional: If not added, "i" won't be on the portal for the field
+      acceptedFileTypes: # Optional: A list of file type specifiers that the user will be able to upload (more information on file type specifiers: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#unique_file_type_specifiers). If not added or left empty, the user will be able to upload any file.
+        - image/png # example accepted file types
+        - video/mp4 # example accepted file types
+```
+</details>
+
+<details>
+<summary><h3 id="file-input---file">File Input - <code>file</code></h3></summary><br>
+
+
+The `file` input field is used to capture a file input from the user. It is the most commonly used to allow the 
+user to upload a file that can be used in the workflow.
+
+> Note: Unlike the other input fields, the `file` input field's output points to a direcry (the file cache), not the direct value/input provided by the user.
+>
+> The `acceptedFileTypes` property can be represented as a hyphenated list of strings or also an array of strings, i.e. `["image/*", "video/*"]`. [Click here](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#unique_file_type_specifiers) for more information on file type specifiers.
+
+#### Example
+
+```yaml
+fields:
+  - label: requested-file # Required
+    properties:
+      display: Upload desired file # Optional: if not specified, the title for the field will not be displayed on the portal
+      type: file # Required
+      required: true # Optional: If not added, will default to `false`
+      description: Upload desired files that are to be uploaded to the runner for processing # Optional: If not added, "i" won't be on the portal for the field
+      acceptedFileTypes: [] # Optional: A list of file type specifiers that the user will be able to upload (more information: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#unique_file_type_specifiers). If not added or left empty, the user will be able to upload any file.
+
+```
+</details>
+
+
+<details>
+<summary><h3 id="text-input---text">Text Input - <code>text</code></h3></summary><br>
+
+
 
 The text input field is used to capture text input from the user. It is the most commonly used input field type.
 
@@ -221,7 +305,11 @@ fields:
       placeholder: Enter your name # Optional: If not added, the placeholder won't be displayed on the portal
       defaultValue: John Doe # Optional: If not added, the default value won't be displayed on the portal
 ```
-### Textarea Input - `textarea`
+</details>
+
+
+<details>
+<summary><h3 id="textarea-input---textarea">Textarea Input - <code>textarea</code></h3></summary><br>
 
 The textarea input field is used to capture or display ( set `readOnly` to `true`) multi-line text input from the user. It is commonly used to capture long text input from the user.
 
@@ -242,8 +330,12 @@ fields:
       defaultValue: This is a note  # Optional
       readOnly: false # Optional: If not added, will default to `false`. If set to `true` the field will be read-only, and the user will not be able to change the value, which can be useful for displaying information to the user. 
 ```
+</details>
 
-### Number Input - `number`
+
+<details>
+<summary><h3 id="number-input---number">Number Input - <code>number</code></h3></summary><br>
+
 
 The number input field is used to capture numerical input from the user.
 
@@ -262,8 +354,11 @@ fields:
       placeholder: Enter the number of days to wipe cache data # Optional
       defaultValue: 14  # Optional: This is the value that will be displayed on the portal and used for the output if the user enters no value
 ```
+</details>
 
-### Boolean Input - `boolean`
+<details>
+<summary><h3 id="boolean-input---boolean">Boolean Input - <code>boolean</code></h3></summary><br>
+
 
 The boolean input field captures a boolean input from the user (`True` or `False`). It is commonly used to determine where the expected output should be `True` or `False` from the user.
 
@@ -279,7 +374,11 @@ fields:
       defaultValue: true # Optional: If not added, neither True nor False will be selected on the portal
 ```
 
-### Select Input - `select`
+</details>
+
+<details>
+<summary><h3 id="select-input---select">Select Input - <code>select</code></h3></summary><br>
+
 
 The select input field captures a single selection from a list of options from the user. It is commonly used to capture when you wish to scope the user's choice for a particular set of options.
 
@@ -304,7 +403,11 @@ fields:
         - JP
 ```
 
-### Multi-Select Input - `multiselect`
+</details>
+
+
+<details>
+<summary><h3 id="multi-select-input---multiselect">Multi-Select Input - <code>multiselect</code></h3></summary><br>
 
 The multi-select input field captures multiple selections from a list of user options. It is commonly used to capture when you wish to scope the user's selection for a particular set of options.
 
@@ -328,6 +431,7 @@ fields:
         - FR
         - JP
 ```
+</details>
 
 
 ## 💻 Contributing, 🐛 Reporting Bugs & 💫 Feature Requests

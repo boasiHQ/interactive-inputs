@@ -232,7 +232,7 @@ func TestConfig_NewFromInputs(t *testing.T) {
 				GithubToken:                     "github-secret-token",
 				NgrokAuthtoken:                  "ngrok-secret-token",
 			},
-			expectedOutput: "::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: Where should application be deployed?\n::error::Invalid field type 'options' provided for field 'deployment-environment'. Valid field types are: text, textarea, number, boolean, select, multiselect\n::error::Can't convert the 'fields' input to a valid fields config: fields:%0A  - label: deployment-environment%0A    properties:%0A      display: Environment names%0A      type: options%0A      choices: ['option', 'option2', 'option3']\n",
+			expectedOutput: "::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: Where should application be deployed?\n::error::Invalid field type 'options' provided for field 'deployment-environment'. Valid field types are: text, textarea, number, boolean, select, multiselect, file, multifile\n::error::Can't convert the 'fields' input to a valid fields config: fields:%0A  - label: deployment-environment%0A    properties:%0A      display: Environment names%0A      type: options%0A      choices: ['option', 'option2', 'option3']\n",
 			expectedError:  errors.ErrMalformedFieldsInputDataProvided,
 		},
 	}
