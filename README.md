@@ -35,7 +35,7 @@ If you want to contribute, fix a bug, or play around with this action locally, p
 
 To see the full list of supported input fields for the `interactive` input, see the [Input Fields Types](#input-fields-types) section below.
 
-### Screenshots
+### See In Action
 
 Here are some examples of the Interactive Input action... in action 👀😔:
 
@@ -112,12 +112,11 @@ To create a Discord integration, follow these steps:
 To get started, below is an example of how you can leverage this action in your workflow file
 
 <details>
-<summary>Complete example workflow</summary>
+<summary><b> •• Complete example workflow •• </b></summary>
 
 
 Below is an example of how you can leverage this action in your workflow file, you will neeed to replace the `NGROK_AUTHTOKEN` secret with your own, and if you wish to send notifications to Slack/ Discord, you will need to replace the `SLACK_TOKEN` and `DISCORD_WEBHOOK` secrets with your own as well as enabling the `notifier-slack-enabled` and `notifier-discord-enabled` inputs.
 
-The [`multifile` input field type](#multifile-input---multifile) and the [`file` input field type](#file-input---file) will provide the path to where the uploaded files are located on the runner. You can then use this information in later stages of your workflow.
 
 
 ```yaml
@@ -199,6 +198,7 @@ jobs:
 
 When using this action, here are a few key points to note:
 
+- The [`multifile` input field type](#multifile-input---multifile) and the [`file` input field type](#file-input---file) will provide the path to where the uploaded files are located on the runner. You can then use this information in later stages of your workflow.
 - To enable the external notifications, you will need to set the `notifier-slack-enabled` or `notifier-discord-enabled` property to `true` in the `with` object. Follow the [**Creating a Slack integration**](#creating-a-slack-integration) or [**Creating a Discord integration**](#creating-a-discord-integration) sections above for more information.
   - To send a message to a thread, you will need to set the `notifier-slack-thread-ts` or `notifier-discord-thread-id` property to the thread timestamp or thread ID, respectively.
 - The portal will display fields in the order defined in the `fields` array.
