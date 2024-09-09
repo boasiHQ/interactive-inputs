@@ -1,9 +1,7 @@
-name: '[Example] Interactive Inputs'
+name: "[Example] Interactive Inputs"
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   interactive-inputs:
@@ -24,7 +22,7 @@ jobs:
           notifier-discord-enabled: "false"
           notifier-discord-webhook: ${{ secrets.DISCORD_WEBHOOK }}
           timeout: 160
-          title: 'A batch of 10 feature flags have been added to be deployed. Would you like to proceed?'
+          title: "A batch of 10 feature flags have been added to be deployed. Would you like to proceed?"
           interactive: |
             fields:
               - label: continue-roll-out

@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - "src/**"
+      - .github/workflows/ci.yaml
+
+permissions:
+  contents: write
+
+jobs:
+  src-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: "src/go.mod"
+      - id: run-src-tests
+        name: Run SRC tests
+        run: |
+          cd src 
+          go test -v  ./...
