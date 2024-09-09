@@ -38,7 +38,7 @@ jobs:
                   type: multiselect
                   choices: 
                     ["Payments", "Bookings", "Notifications", "Support"]
-              - label: uploaded
+              - label: requested-files
                 properties:
                   display: Upload desired files
                   type: multifile
@@ -63,5 +63,5 @@ jobs:
         run: |
           echo "Display uploaded files"
           echo -e "\n==============================\n"
-          ls -la ${{ steps.interactive-inputs.outputs.uploaded }} # Use the label of the multifile/file field as the key to get the uploaded file directory
+          ls -la ${{ steps.interactive-inputs.outputs.requested-files }} # Use the label of the multifile/file field as the key to get the uploaded file directory
           echo -e "\n==============================\n"
