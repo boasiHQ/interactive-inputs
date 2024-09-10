@@ -8,9 +8,15 @@ The Interactive inputs action allows you to utilise runtime inputs in your GitHu
 
 The action was developed to address the issue of GitHub Actions not having a core feature that is found in other CI tools such as Jenkins - in-pipeline input variables. With this action, you can create an in-pipeline input that will prompt the user for input during runtime, and then use that input in the workflow via a deterministic output.
 
-### Developing Locally
 
-If you want to contribute, fix a bug, or play around with this action locally, please follow the instructions outlined in the [**getting started** file](./gettting-started.md).
+</details>
+
+
+<details>
+<summary><h2 id="view-action-inputs"> •• View Action Inputs •• </h2></summary><br>
+
+To see the complete list of input field types and their respective properties supported by the `interactive` input mentioned below, go to the [Input Fields Types](#input-fields-types) section of this README.<br>
+
 
 <!-- action-docs-inputs source="action.yml" -->
 ## Inputs
@@ -32,14 +38,15 @@ If you want to contribute, fix a bug, or play around with this action locally, p
 | `notifier-discord-webhook` | <p>The webhook URL used to send the notification(s) to Discord</p> | `true` | `secret-webhook` |
 | `notifier-discord-username` | <p>The username to send the notification(s) as</p> | `false` | `""` |
 <!-- action-docs-inputs source="action.yml" -->
-
-To see the full list of supported input fields for the `interactive` input, see the [Input Fields Types](#input-fields-types) section below.
+</details>
 
 ### See In Action
 
 Here are some examples of the Interactive Input action... in action 👀😔:
 
-<img src="./assets/InteractiveInputs_LiveFileInputTypeSupport.gif" alt="GitHub Action Complete flow" width="400"/>
+.<img src="./assets/InteractiveInputs_LiveFileInputTypeSupport.gif" alt="Demonstrating Multifile input field type" width="400"/>
+<img src="./assets/InteractiveInput_MultiselectToControlFlow.gif" alt="Example of using Interactive Input's multiselect to control flow" width="400"/>
+<img src="./assets/InteractiveInput_GeneratedNumberCheckerFlow.gif" alt="Example of using Interactive Input to run a comparison on user input vs generated number" width="400"/>
 <img src="./assets/notifier-slack-message.png" alt="Integration - Slack" width="400"/>
 <img src="./assets/notifier-discord-message.png" alt="Integration - Discord" width="400"/>
 
@@ -107,9 +114,10 @@ To create a Discord integration, follow these steps:
 </details>
 
 
-## Example
+## Examples
 
-To get started, below is an example of how you can leverage this action in your workflow file
+Here are various examples demonstrating how to use this action in your workflows
+
 
 <details>
 <summary><b> •• Complete example workflow •• </b></summary><br>
@@ -192,7 +200,176 @@ jobs:
 
 ```  
 
-</details>       
+</details>  
+
+<details>
+<summary><b> •• multiselect to control flow •• </b></summary><br>
+
+This is the workflow file for the ["multiselect to control flow"](./assets/InteractiveInput_MultiselectToControlFlow.gif) gif [referenced above](#see-in-action). <br>
+
+```yaml
+name: '[Example] Multiselect to invoke other flows'
+
+on:
+ workflow_dispatch:
+
+jobs:
+
+  interactive-inputs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Example Interactive Inputs Step
+        id: interactive-inputs
+        uses: boasiHQ/interactive-inputs@v2
+        with:
+          timeout: 300
+          title: 'We need you to select your desired flow(s) to execute'
+          interactive: |
+            fields:
+              - label: runtime-options
+                properties:
+                  description: Below are the available flows that can be executed
+                  display: Select the flow(s) to execute
+                  type: multiselect
+                  choices: 
+                    ["option-a", "option-b", "option-c"]
+                  required: true
+              - label: notes
+                properties:
+                  display: Optional - Additional note(s)
+                  type: textarea
+                  description: Additional notes on why this selection was made.
+          notifier-slack-enabled: "false"
+          notifier-slack-channel: "#random"
+          notifier-slack-token: ${{ secrets.SLACK_TOKEN }}
+          notifier-discord-enabled: "false"
+          notifier-discord-webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          github-token: ${{ github.token }}
+          ngrok-authtoken: ${{ secrets.NGROK_AUTHTOKEN }}
+    outputs:
+        runtime-options: ${{ steps.interactive-inputs.outputs.runtime-options }}
+
+  option-a:
+    runs-on: ubuntu-latest
+    needs: ["interactive-inputs"]
+    if: ${{ contains( needs.interactive-inputs.outputs.runtime-options, 'option-a' ) }}
+    steps:
+      - name: Run option-a
+        shell: bash
+        run: |
+          echo "Running flow option-a "
+          echo -e "\n==============================\n"
+          echo "Detected Selection: ${{join(needs.interactive-inputs.outputs.runtime-options, '\n')}}"
+          echo -e "\n==============================\n"
+
+  option-b:
+    runs-on: ubuntu-latest
+    needs: ["interactive-inputs"]
+    if: ${{ contains( needs.interactive-inputs.outputs.runtime-options, 'option-b' ) }}
+    steps:
+      - name: Run option-b
+        shell: bash
+        run: |
+            echo "Running flow option-b "
+            echo -e "\n==============================\n"
+            echo "Detected Selection: ${{join(needs.interactive-inputs.outputs.runtime-options, '\n')}}"
+            echo -e "\n==============================\n"
+
+  option-c:
+      runs-on: ubuntu-latest
+      needs: ["interactive-inputs"]
+      if: ${{ contains( needs.interactive-inputs.outputs.runtime-options, 'option-c' ) }}
+      steps:
+        - name: Run option-c
+          shell: bash
+          run: |
+              echo "Running flow option-c "
+              echo -e "\n==============================\n"
+              echo "Detected Selection: ${{join(needs.interactive-inputs.outputs.runtime-options, '\n')}}"
+              echo -e "\n==============================\n"
+```
+
+</details>
+
+
+<details>
+<summary><b> •• generated number checker flow •• </b></summary><br>
+
+This is the workflow file for the ["generated number checker flow"](./assets/InteractiveInput_GeneratedNumberCheckerFlow.gif) gif [referenced above](#see-in-action). <br>
+
+```yaml
+name: '[Example] Match generated number flow'
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  interactive-inputs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Generate random number
+        id: get-random-number
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          # Script for generating random number sourced from: https://stackoverflow.com/a/7228322
+          script: |
+            function randomIntFromInterval(min, max) { // min and max included 
+              return Math.floor(Math.random() * (max - min + 1) + min);
+            }
+
+            return randomIntFromInterval(1, 5);
+
+      - name: Example Interactive Inputs Step
+        id: interactive-inputs
+        uses: boasiHQ/interactive-inputs@v2
+        with:
+          timeout: 300
+          title: 'We need you to select your desired flow(s) to execute'
+          interactive: |
+            fields:
+              - label: display-number
+                properties:
+                  description: This is a generated number
+                  display: Generated Number
+                  type: textarea
+                  defaultValue: ${{ steps.get-random-number.outputs.result }}
+                  readOnly: true
+              - label: selected-number
+                properties:
+                  description: Match the generated number specified in the text field above
+                  display: Enter the number you see above
+                  type: number
+                  required: true
+          notifier-slack-enabled: "false"
+          notifier-slack-channel: "#random"
+          notifier-slack-token: ${{ secrets.SLACK_TOKEN }}
+          notifier-discord-enabled: "false"
+          notifier-discord-webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          github-token: ${{ github.token }}
+          ngrok-authtoken: ${{ secrets.NGROK_AUTHTOKEN }}
+
+      - name: Check if number matches
+        id: check-number
+        shell: bash
+        run: |
+          if [[ ${{ steps.interactive-inputs.outputs.selected-number }} -eq ${{ steps.get-random-number.outputs.result }} ]]; then
+            echo "The number matches!"
+          else
+            echo "The number does not match."
+          fi
+
+```
+</details>
+
+
 
 ### Key points
 
@@ -441,6 +618,10 @@ We are currently developing a process to facilitate contributions. Please be pat
 Soon, we will use issues to gather feedback on bugs, feature requests, and more. When testing new features or bug fixes, we will create pull requests (PRs) and keep them focused on a single feature or bug fix, allowing you to test them.
 
 When expressing interest in a bug, enhancement, PR, or issue, please use the thumbs-up or thumbs-down emoji on the original message rather than adding duplicate comments.
+
+### Developing Locally
+
+If you want to contribute, fix a bug, or play around with this action locally, please follow the instructions outlined in the [**getting started** file](./gettting-started.md).
 
 
 ## Licence
