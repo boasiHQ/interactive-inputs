@@ -1,12 +1,14 @@
 # Interactive Inputs
 
-Interactive Inputs now enables GitHub Actions to support runtime inputs for workflows and composite actions. This action allows you to leverage various input types, including but not limited to text, multiple choice, and even uploading files, creating dynamic workflows that adapt to your CI/CD needs.
+Interactive Inputs now enables GitHub Actions to support dynamic runtime user inputs for workflows and composite actions. This action allows you to leverage various [input field types](#input-fields-types), including but not limited to [text](#text-input---text), [multiple choice](#multi-select-input---multiselect), and even [uploading files](#multifile-input---multifile), creating dynamic workflows that adapt to your CI/CD needs.
 
-## Summary
+Use the reference **`boasihq/interactive-inputs@v2`** in your workflows to ensure you are using the latest features of this action.
 
-The Interactive inputs action allows you to utilise runtime inputs in your GitHub Actions workflows. This action is a powerful way to create dynamic workflows that can adjust based on user input.
+## Motivation and Context
 
-The action was developed to address the issue of GitHub Actions not having a core feature that is found in other CI tools such as Jenkins - in-pipeline input variables. With this action, you can create an in-pipeline input that will prompt the user for input during runtime, and then use that input in the workflow via a deterministic output.
+The action was developed to address the issue of GitHub Actions not having a core feature found in other CI tools such as Jenkins - dynamic runtime inputs. With this action, you can now create an dynamic runtime input portal that will prompt the user for input(s) during runtime. Then, you can use that given input value in the workflow via a deterministic output id, some examples can be found in the [examples](#examples) section.
+
+Since the initial release, have continued to add features, i.e., [**Slack**/ **Discord** integration](#sending-notifications-to-slack-discord) for portal notifications, in-runtime file uploads via the [`files`](#file-input---file)/[`multifile`](#multifile-input---multifile) field type and more. We are eager to develop an excellent GitHub Action that allows you to deliver exceptional value with your CI/CD pipelines. If you have any ideas for additional features that could enhance the value of this action, please [**create an issue**](https://github.com/boasiHQ/interactive-inputs/issues/new/choose) with an explanation of your thoughts and use case(s). This will allow us to review and discuss it and then work on implementing it as soon as possible.
 
 
 </details>
@@ -56,7 +58,7 @@ Here are some examples of the Interactive Input action... in action 👀😔:
 To get started, there are three main steps:
 
 1. Sign up to NGROK and get your auth token if you do not already have one by [**clicking here**](https://dashboard.ngrok.com/signup)
-2. Add this action `boasihq/interactive-inputs@v2` to your workflow file. See [the example below](#example) for more information.
+2. Add this action `boasihq/interactive-inputs@v2` to your workflow file. See below the [various example implemenations](#example) for inspiration.
 3. Use the predictable output variables from your interactive input portal to create dynamic workflows.
 
 > Note, this action requires an ARM64 or AMD64 (x86) runner to run i.e. `ubuntu-latest`
@@ -116,15 +118,14 @@ To create a Discord integration, follow these steps:
 
 ## Examples
 
-Here are various examples demonstrating how to use this action in your workflows
+Here are various examples demonstrating how to use this action in your workflows. Note that this is not an exhaustive list of all the possible use cases. Please share your implementations with us; we will add them to this list!
 
+It is worth noting that these example workflows can be leveraged this action in your workflow file, but to do so, you will need to replace the `NGROK_AUTHTOKEN` secret with your own, and if you wish to send notifications to Slack/ Discord, you will need to replace the `SLACK_TOKEN` and `DISCORD_WEBHOOK` secrets with your own as well as enabling the `notifier-slack-enabled` and `notifier-discord-enabled` inputs. More information on how to do this can be found in the [Getting Started](#getting-started) section.
 
 <details>
-<summary><b> •• Complete example workflow •• </b></summary><br>
+<summary><b> •• example workflow with all fields types •• </b></summary><br>
 
-
-Below is an example of how you can leverage this action in your workflow file, you will neeed to replace the `NGROK_AUTHTOKEN` secret with your own, and if you wish to send notifications to Slack/ Discord, you will need to replace the `SLACK_TOKEN` and `DISCORD_WEBHOOK` secrets with your own as well as enabling the `notifier-slack-enabled` and `notifier-discord-enabled` inputs.
-
+This example workflow demonstrates how the different [input field types](#input-fields-types) supported by this action can be used with their respective properties to build out many possibilities when creating a bespoke user experience when it comes the CI/CD flow for you/ your user's needs.
 
 
 ```yaml
@@ -157,30 +158,79 @@ jobs:
           title: 'A batch of 10 feature flags have been added to be deployed. Would you like to proceed?'
           interactive: |
             fields:
-              - label: continue-roll-out
+              - label: overview
                 properties:
-                  display: Continue to roll out?
-                  defaultValue: 'false'
-                  type: boolean
-                  required: true
-              - label: exclude-domains
+                  type: textarea
+                  description: Information on what this action does
+                  defaultValue: "This example is a powerful demonstration of how you can utilize the boasiHQ/interactive-inputs action to tailor the dynamic portal to your specific needs and desired output."
+                  readOnly: true
+              - label: custom-file
                 properties:
-                  description: Select the domains to exclude from the roll out
-                  display: Exclude domain(s)
-                  type: multiselect
-                  choices: 
-                    ["Payments", "Bookings", "Notifications", "Support"]
+                  display: Choose a file
+                  type: file
+                  description: Select the media you wish to send to the channel
+                  acceptedFileTypes:
+                    - image/png
+                    - video/mp4
               - label: requested-files
                 properties:
                   display: Upload desired files
                   type: multifile
                   required: true
                   description: Upload desired files that are to be uploaded to the runner for processing
-              - label: notes
+              - label: name
                 properties:
-                  display: Additional note(s)
+                  display: What is your name?
+                  type: text
+                  description: Name of the user
+                  maxLength: 20
+                  required: true
+              - label: age
+                properties:
+                  display: How old are you?
+                  type: number
+                  description: Age of the user
+                  placeholder: 18
+                  maxNumber: 110
+                  minNumber: 4
+                  required: false
+              - label: car
+                properties:
+                  display: Favourite Car
+                  type: select
+                  description: The name of your favourite car
+                  disableAutoCopySelection: false
+                  choices:
+                    - Ford
+                    - Toyota
+                    - Honda
+                    - Volvo
+                    - BMW
+                    - Mercedes
+                    - Audi
+                    - Lexus
+                    - Tesla
+                    - Other
+                  required: true
+              - label: colour
+                properties:
+                  display: What are your favourite colours
+                  type: multiselect
+                  disableAutoCopySelection: true
+                  choices: 
+                    ["Red", "Green", "Blue", "Orange", "Purple", "Pink", "Yellow"]
+                  required: true
+              - label: verify
+                properties:
+                  display: Are you sure you want to continue?
+                  defaultValue: 'false'
+                  type: boolean
+                  required: true'
+              - label: additional-info
+                properties:
                   type: textarea
-                  description: Additional notes on why this decision has been made are to be added to the audit trail.
+                  display: More information
+                  description: Any more information you would like to add
 
       - name: Display Outputs
         shell: bash
