@@ -89,7 +89,7 @@ type SlackNotifier struct {
 func (n *SlackNotifier) Notify(title, message string) (string, error) {
 
 	var notificationResponse SlackChatPostMessageResponse
-	var slackPostChatMessageUrl string = "https://slack.com/api/chat.postMessage?unfurl_links=false"
+	var slackPostChatMessageUrl string = "https://slack.com/api/chat.postMessage"
 
 	// Shape the message to be sent
 	renderedMessage, err := n.renderStandardSlackNofityMessage(title, message)
