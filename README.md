@@ -123,7 +123,7 @@ Here are various examples demonstrating how to use this action in your workflows
 It is worth noting that these example workflows can be leveraged this action in your workflow file, but to do so, you will need to replace the `NGROK_AUTHTOKEN` secret with your own, and if you wish to send notifications to Slack/ Discord, you will need to replace the `SLACK_TOKEN` and `DISCORD_WEBHOOK` secrets with your own as well as enabling the `notifier-slack-enabled` and `notifier-discord-enabled` inputs. More information on how to do this can be found in the [Getting Started](#getting-started) section.
 
 <details>
-<summary><b> •• example workflow with all fields types •• </b></summary><br>
+<summary><b id="example-workflow-with-all-field-types"> •• example workflow with all field types •• </b></summary><br>
 
 This example workflow demonstrates how the different [input field types](#input-fields-types) supported by this action can be used with their respective properties to build out many possibilities when creating a bespoke user experience when it comes the CI/CD flow for you/ your user's needs.
 
@@ -253,7 +253,7 @@ jobs:
 </details>  
 
 <details>
-<summary><b> •• multiselect to control flow •• </b></summary><br>
+<summary><b id="example-workflow-multiselect-to-control-flow"> •• multiselect to control flow •• </b></summary><br>
 
 This is the workflow file for the ["multiselect to control flow"](./assets/InteractiveInput_MultiselectToControlFlow.gif) gif [referenced above](#see-in-action). <br>
 
@@ -346,7 +346,7 @@ jobs:
 
 
 <details>
-<summary><b> •• generated number checker flow •• </b></summary><br>
+<summary><b id="example-workflow-generated-number-checker-flow"> •• generated number checker flow •• </b></summary><br>
 
 This is the workflow file for the ["generated number checker flow"](./assets/InteractiveInput_GeneratedNumberCheckerFlow.gif) gif [referenced above](#see-in-action). <br>
 
