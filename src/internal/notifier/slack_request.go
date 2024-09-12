@@ -12,6 +12,9 @@ type SlackChatPostMessageRequest struct {
 	// IconUrl is the URL of the icon to use for the bot
 	IconUrl string `json:"icon_url,omitempty"`
 
+	// UnfurlMedia is whether to enable unfurling of media content.
+	UnfurlMedia bool `json:"unfurl_media,omitempty"`
+
 	// UnfurlLinks is whether to enable unfurling of primarily text-based content.
 	UnfurlLinks bool `json:"unfurl_links,omitempty"`
 
