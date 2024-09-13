@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@ii-i5-add-file-field-type
+        uses: boasihq/interactive-inputs@v2
         with:
           ngrok-authtoken: ${{ secrets.NGROK_AUTHTOKEN }}
           notifier-slack-enabled: "false"
