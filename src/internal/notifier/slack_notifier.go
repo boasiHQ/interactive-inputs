@@ -98,9 +98,11 @@ func (n *SlackNotifier) Notify(title, message string) (string, error) {
 	}
 
 	notificationMessage := SlackChatPostMessageRequest{
-		Channel:  n.channel,
-		Username: n.botName,
-		IconUrl:  "https://interactiveinputs.com/static/img/interactive-inputs-no-bg-text-black.png",
+		Channel:     n.channel,
+		UnfurlLinks: false,
+		UnfurlMedia: false,
+		Username:    n.botName,
+		IconUrl:     "https://interactiveinputs.com/static/img/interactive-inputs-no-bg-text-black.png",
 		Blocks: []SlackBlock{
 			{
 				Type: "section",
