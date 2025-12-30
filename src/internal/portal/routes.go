@@ -46,29 +46,53 @@ type AttachRoutesRequest struct {
 
 	// Base path Todo
 	// e.g. "run-12345" resulting in endpoints like /run-12345/submit
-	// BasePath string
+	BasePath string
 }
 
 // AttachRoutes attaches portal handlers to corresponding
 // routes on router
 func AttachRoutes(request *AttachRoutesRequest) {
 
-	// Create filesystem only holding static assets
-	staticSubFS, err := fs.Sub(request.EmbeddedContent, fmt.Sprintf("%sweb/ui/static", request.EmbeddedContentFilePathPrefix))
-	if err != nil {
-		request.ActionPkg.Errorf("unable-to-create-file-system-for-static-assets: %v", err)
-		os.Exit(1)
-	}
+    // Create filesystem only holding static assets
+    staticSubFS, err := fs.Sub(request.EmbeddedContent, fmt.Sprintf("%sweb/ui/static", request.EmbeddedContentFilePathPrefix))
+    if err != nil {
+        request.ActionPkg.Errorf("unable-to-create-file-system-for-static-assets: %v", err)
+        os.Exit(1)
+    }
 
-	// Create path for handling static assets
-	request.Router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.FS(staticSubFS))))
+    // Create path for handling static assets
+    request.Router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.FS(staticSubFS))))
 
-	request.Router.HandleFunc("/", request.UiHandler.Home).Methods("GET")
-	request.Router.HandleFunc("/submit", request.PortalEventHandler.SubmitPortal).Methods("POST")
-	request.Router.HandleFunc("/cancel", request.PortalEventHandler.CancelPortal).Methods("POST")
+    // Namespace all app routes under the provided base path
+    trimmedBase := strings.Trim(request.BasePath, "/ ")
+    if trimmedBase == "" {
+        trimmedBase = "runner"
+    }
+    // Redirect root to the namespaced base path and normalize trailing slash
+    request.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+        prefix := strings.TrimRight(r.Header.Get("X-Forwarded-Prefix"), "/ ")
+        target := "/" + trimmedBase + "/"
+        if prefix != "" {
+            target = prefix + target
+        }
+        http.Redirect(w, r, target, http.StatusPermanentRedirect)
+    }).Methods("GET")
+    request.Router.HandleFunc("/"+trimmedBase, func(w http.ResponseWriter, r *http.Request) {
+        prefix := strings.TrimRight(r.Header.Get("X-Forwarded-Prefix"), "/ ")
+        target := "/" + trimmedBase + "/"
+        if prefix != "" {
+            target = prefix + target
+        }
+        http.Redirect(w, r, target, http.StatusPermanentRedirect)
+    }).Methods("GET")
+    baseRouter := request.Router.PathPrefix("/" + trimmedBase).Subrouter()
 
-	apiRouter := request.Router.PathPrefix("/api/v1").Subrouter()
-	apiRouter.HandleFunc("/upload", request.PortalEventHandler.UploadToPortal).Methods("POST", "OPTIONS")
-	apiRouter.HandleFunc(fmt.Sprintf("/reset/{%s}", InputFieldLabelUriVariableId), request.PortalEventHandler.ResetUpload).Methods("DELETE", "OPTIONS")
+    baseRouter.HandleFunc("/", request.UiHandler.Home).Methods("GET")
+    baseRouter.HandleFunc("/submit", request.PortalEventHandler.SubmitPortal).Methods("POST")
+    baseRouter.HandleFunc("/cancel", request.PortalEventHandler.CancelPortal).Methods("POST")
+
+    apiRouter := baseRouter.PathPrefix("/api/v1").Subrouter()
+    apiRouter.HandleFunc("/upload", request.PortalEventHandler.UploadToPortal).Methods("POST", "OPTIONS")
+    apiRouter.HandleFunc(fmt.Sprintf("/reset/{%s}", InputFieldLabelUriVariableId), request.PortalEventHandler.ResetUpload).Methods("DELETE", "OPTIONS")
 
 }
