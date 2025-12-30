@@ -43,6 +43,10 @@ type AttachRoutesRequest struct {
 
 	// ActionPkg represents the githubactions package
 	ActionPkg actionPkg
+
+	// Base path Todo
+	// e.g. "run-12345" resulting in endpoints like /run-12345/submit
+	// BasePath string
 }
 
 // AttachRoutes attaches portal handlers to corresponding
