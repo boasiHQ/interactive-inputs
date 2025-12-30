@@ -37,6 +37,7 @@ func run() error {
 		cfg = &config.Config{
 			Action:  action,
 			Timeout: config.DefaultTimeout,
+			RunnerEndpointKey: "local",
 		}
 	}
 

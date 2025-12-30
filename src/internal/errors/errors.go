@@ -52,4 +52,10 @@ var (
 
 	// ErrDuplicateFieldLabelDetected is returned when the same field label is detected in the input data
 	ErrDuplicateFieldLabelDetected = errors.New("DuplicateFieldLabelDetected")
+
+	// ErrInvalidPortalHostModeProvided is returned when an unsupported option is provided for how to expose the portal
+	ErrInvalidPortalHostModeProvided = errors.New("InvalidPortalHostModeProvided")
+
+	// ErrSelfHostedPublicURLMissing is returned when self-hosted mode is enabled but no public url was supplied
+	ErrSelfHostedPublicURLMissing = errors.New("SelfHostedPublicURLMissing")
 )

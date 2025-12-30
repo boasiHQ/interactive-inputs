@@ -1,12 +1,13 @@
 package runner
 
 import (
-	"context"
-	"fmt"
-	"io/fs"
-	"net/http"
-	"os"
-	"time"
+    "context"
+    "fmt"
+    "io/fs"
+    "net/http"
+    "os"
+    "strings"
+    "time"
 
 	"github.com/boasihq/interactive-inputs/internal/config"
 	"github.com/boasihq/interactive-inputs/internal/errors"
@@ -15,8 +16,6 @@ import (
 	webui "github.com/boasihq/interactive-inputs/internal/web"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
-	"golang.ngrok.com/ngrok"
-	nconfig "golang.ngrok.com/ngrok/config"
 )
 
 func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config.Config, embeddedContent fs.FS, embeddedContentFilePathPrefix string) error {
@@ -134,14 +133,15 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 	/// Routes
 	r := mux.NewRouter()
 
-	portal.AttachRoutes(&portal.AttachRoutesRequest{
-		Router:                        r,
-		PortalEventHandler:            portalEventHandler,
-		UiHandler:                     uiHandler,
-		EmbeddedContent:               embeddedContent,
-		EmbeddedContentFilePathPrefix: embeddedContentFilePathPrefix,
-		ActionPkg:                     cfg.Action,
-	})
+    portal.AttachRoutes(&portal.AttachRoutesRequest{
+        Router:                        r,
+        PortalEventHandler:            portalEventHandler,
+        UiHandler:                     uiHandler,
+        EmbeddedContent:               embeddedContent,
+        EmbeddedContentFilePathPrefix: embeddedContentFilePathPrefix,
+        ActionPkg:                     cfg.Action,
+        BasePath:                      cfg.RunnerEndpointKey,
+    })
 
 	/// Server
 	serverDone := make(chan error, 1)
@@ -150,67 +150,13 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 	notifierDiscordEnterInputMessageTmpl := "[**Enter required input**](%s)"
 	universalNotifierFailedToSelfHost := "A failure has occurred while starting/running your self-hosted portal: %v"
 
-	// TODO: Add a flag to enable/disable the ngrok tunnel respsective
-	// of whether the action is running locally or not
-	if !isRunningLocal {
-		ln, err := ngrok.Listen(ctx,
-			nconfig.HTTPEndpoint(),
-			ngrok.WithAuthtoken(cfg.NgrokAuthtoken),
-		)
-		if err != nil {
-			return err
-		}
-
-		serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, ln.URL())
-
-		cfg.Action.Noticef(serverInitMessage)
-
-		if slackNotifier.Enabled() {
-			_, err := slackNotifier.Notify(cfg.Title, fmt.Sprintf(notifierSlackEnterInputMessageTmpl, ln.URL()))
-			if err != nil {
-				cfg.Action.Errorf("Slack Notifier Notification Failed: %v", err)
-				return err
-			}
-		}
-
-		if discordNotifier.Enabled() {
-			_, err := discordNotifier.Notify(cfg.Title, fmt.Sprintf(notifierDiscordEnterInputMessageTmpl, ln.URL()))
-			if err != nil {
-				cfg.Action.Errorf("Discord Notifier Notification Failed: %v", err)
-				return err
-			}
-		}
-
-		go func() {
-			// server logic
-			if err := http.Serve(ln, r); err != nil {
-				serverErrorMessage := fmt.Sprintf(universalNotifierFailedToSelfHost, err)
-
-				cfg.Action.Errorf(serverErrorMessage)
-				if slackNotifier.Enabled() {
-					_, err := slackNotifier.Notify(cfg.Title, serverErrorMessage)
-					if err != nil {
-						cfg.Action.Errorf("Slack Notifier Notification Failed: %v", err)
-					}
-				}
-
-				if discordNotifier.Enabled() {
-					_, err := discordNotifier.Notify(cfg.Title, serverErrorMessage)
-					if err != nil {
-						cfg.Action.Errorf("Discord Notifier Notification Failed: %v", err)
-					}
-				}
-
-				serverDone <- err
-			}
-			serverDone <- ln.CloseWithContext(ctx)
-		}()
-
-	} else {
-		localPort := ":8080"
-		server := &http.Server{Addr: localPort, Handler: r}
-		completeLocalUrl := fmt.Sprintf("http://localhost%s", localPort)
-		serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, completeLocalUrl)
+    if isRunningLocal {
+        localPort := ":8080"
+        server := &http.Server{Addr: localPort, Handler: r}
+        completeLocalUrl := fmt.Sprintf("http://localhost%s", localPort)
+        // add runner endpoint key to base url
+        completeLocalUrl = fmt.Sprintf("%s/%s/", strings.TrimRight(completeLocalUrl, "/"), strings.Trim(cfg.RunnerEndpointKey, "/ "))
+        serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, completeLocalUrl)
 
 		cfg.Action.Noticef(serverInitMessage)
 		if slackNotifier.Enabled() {
@@ -253,6 +199,53 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 			}
 			serverDone <- server.Shutdown(ctx)
 		}()
+
+    } else {
+        server := &http.Server{Addr: cfg.SelfHostedListenAddress, Handler: r}
+        publicURL := fmt.Sprintf("%s/%s/", strings.TrimRight(cfg.SelfHostedPublicURL, "/"), strings.Trim(cfg.RunnerEndpointKey, "/ "))
+        serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, publicURL)
+
+		cfg.Action.Noticef(serverInitMessage)
+		if slackNotifier.Enabled() {
+			_, err := slackNotifier.Notify(cfg.Title, fmt.Sprintf(notifierSlackEnterInputMessageTmpl, publicURL))
+			if err != nil {
+				cfg.Action.Errorf("Slack Notifier Notification Failed: %v", err)
+				return err
+			}
+		}
+
+		if discordNotifier.Enabled() {
+			_, err := discordNotifier.Notify(cfg.Title, fmt.Sprintf(notifierDiscordEnterInputMessageTmpl, publicURL))
+			if err != nil {
+				cfg.Action.Errorf("Discord Notifier Notification Failed: %v", err)
+				return err
+			}
+		}
+
+		go func() {
+			if err := server.ListenAndServe(); err != nil {
+				serverErrorMessage := fmt.Sprintf(universalNotifierFailedToSelfHost, err)
+
+				cfg.Action.Errorf(serverErrorMessage)
+				if slackNotifier.Enabled() {
+					_, err := slackNotifier.Notify(cfg.Title, serverErrorMessage)
+					if err != nil {
+						cfg.Action.Errorf("Slack Notifier Notification Failed: %v", err)
+					}
+				}
+
+				if discordNotifier.Enabled() {
+					_, err := discordNotifier.Notify(cfg.Title, serverErrorMessage)
+					if err != nil {
+						cfg.Action.Errorf("Discord Notifier Notification Failed: %v", err)
+					}
+				}
+
+				serverDone <- err
+			}
+			serverDone <- server.Shutdown(ctx)
+		}()
+
 	}
 
 	select {
