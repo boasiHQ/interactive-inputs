@@ -19,6 +19,9 @@ var (
 	// environment variable is not set.
 	ErrGitHubWorkspaceEnvVarIsMissing = errors.New("GitHubWorkspaceEnvVarIsMissing")
 
+	// hosting mode should be self or ngrok
+	ErrNoHostingModeProvided = errors.New("NoHostingModeProvided")
+
 	// ErrInvalidLabelProvided is returned when the label provided in the input data cannot
 	// be converted to kebab case
 	ErrInvalidLabelProvided = errors.New("InvalidLabelProvided")

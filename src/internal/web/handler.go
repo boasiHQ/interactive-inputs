@@ -5,7 +5,8 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
-
+	"strings"
+	"os"
 	"github.com/boasihq/interactive-inputs/internal/config"
 	"github.com/boasihq/interactive-inputs/internal/toolbox"
 	githubactions "github.com/sethvargo/go-githubactions"

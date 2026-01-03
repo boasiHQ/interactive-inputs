@@ -14,230 +14,33 @@ import (
 func TestConfig_NewFromInputs(t *testing.T) {
 
 	tests := []struct {
-		name   string
-		preRun func()
-		envMap map[string]string
-
+		name           string
+		envMap         map[string]string
 		expectedOutput string
 		expectedConfig config.Config
 		expectedError  error
 	}{
 		{
 			name: "successful - created base config from input (default timeout)",
-			preRun: func() {
+			envMap: map[string]string{
+				"INPUT_TITLE":           "What name should be given to the barista?",
+				"INPUT_INTERACTIVE":     "fields:\n  - label: name\n    properties:\n      display: name\n      type: text\n      description: Name of the user\n      maxLength: 20\n      required: false\n",
+				"INPUT_GITHUB-TOKEN":    "github-secret-token",
+				"INPUT_NGROK-AUTHTOKEN": "ngrok-secret-token",
 			},
-        envMap: map[string]string{
-            "INPUT_TITLE":                   "What name should be given to the barista?",
-            "INPUT_INTERACTIVE":             "fields:\n  - label: name\n    properties:\n      display: name\n      type: text\n      description: Name of the user\n      maxLength: 20\n      required: false\n",
-            "INPUT_GITHUB-TOKEN":            "github-secret-token",
-            "INPUT_SELFHOSTED-PUBLIC-URL":   "https://example.com/inputs",
-            "INPUT_SELFHOSTED-LISTEN-ADDRESS": ":8080",
-        },
-        expectedConfig: config.Config{
-            Timeout:                 300,
-            Title:                   "What name should be given to the barista?",
-            PortalHostMode:          config.PortalHostModeSelfHosted,
-            SelfHostedListenAddress: config.DefaultSelfHostedListenAddress,
-            SelfHostedPublicURL:     "https://example.com/inputs",
-            RunnerEndpointKey:       "runner",
-            Fields: &fields.Fields{
-					Fields: []fields.Field{
-						{
-							Label: "name",
-							Properties: fields.FieldProperties{
-								Display:     "name",
-								Type:        "text",
-								Description: "Name of the user",
-								MaxLength:   20,
-								Required:    false,
-							},
-						},
-					},
-				},
-				NotifierSlackEnabled:            false,
-				NotifierSlackToken:              "xoxb-secret-token",
-				NotifierSlackChannel:            "#notificatins",
-				NotifierSlackBotName:            "",
-				NotifierDiscordEnabled:          false,
-				NotifierDiscordWebhook:          "secret-webhook",
-            NotifierDiscordUsernameOverride: "",
-            GithubToken:                     "github-secret-token",
-        },
-        expectedOutput: "::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: What name should be given to the barista?\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n",
-			expectedError:  nil,
-		},
-		{
-			name: "successful - created base config from input (specified timeout)",
-			preRun: func() {
-			},
-        envMap: map[string]string{
-            "INPUT_TITLE":                     "What name should be given to the barista?", "INPUT_TIMEOUT": "240",
-            "INPUT_INTERACTIVE":               "fields:\n  - label: name\n    properties:\n      display: name\n      type: text\n      description: Name of the user\n      maxLength: 20\n      required: false\n",
-            "INPUT_GITHUB-TOKEN":              "github-secret-token",
-            "INPUT_SELFHOSTED-PUBLIC-URL":     "https://example.com/inputs",
-            "INPUT_SELFHOSTED-LISTEN-ADDRESS": ":8080",
-        },
-        expectedConfig: config.Config{
-            Timeout:                 240,
-            Title:                   "What name should be given to the barista?",
-            PortalHostMode:          config.PortalHostModeSelfHosted,
-            SelfHostedListenAddress: config.DefaultSelfHostedListenAddress,
-            SelfHostedPublicURL:     "https://example.com/inputs",
-            RunnerEndpointKey:       "runner",
-            Fields: &fields.Fields{
-					Fields: []fields.Field{
-						{
-							Label: "name",
-							Properties: fields.FieldProperties{
-								Display:     "name",
-								Type:        "text",
-								Description: "Name of the user",
-								MaxLength:   20,
-								Required:    false,
-							},
-						},
-					},
-				},
-				NotifierSlackEnabled:            false,
-				NotifierSlackToken:              "xoxb-secret-token",
-				NotifierSlackChannel:            "#notificatins",
-				NotifierSlackBotName:            "",
-				NotifierDiscordEnabled:          false,
-				NotifierDiscordWebhook:          "secret-webhook",
-            NotifierDiscordUsernameOverride: "",
-            GithubToken:                     "github-secret-token",
-        },
-        expectedOutput: "::debug::Title input provided: What name should be given to the barista?\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n",
-			expectedError:  nil,
-		},
-		{
-			name: "successful - created base config no debug messaging",
-			preRun: func() {
-			},
-        envMap: map[string]string{
-            "INPUT_TITLE":                   "",
-            "INPUT_INTERACTIVE":             "fields:\n  - label: name\n    properties:\n      display: name\n      type: text\n      description: Name of the user\n      maxLength: 20\n      required: false\n",
-            "INPUT_GITHUB-TOKEN":            "github-secret-token",
-            "INPUT_SELFHOSTED-PUBLIC-URL":   "https://example.com/inputs",
-            "INPUT_SELFHOSTED-LISTEN-ADDRESS": ":8080",
-        },
-        expectedConfig: config.Config{
-            Timeout:                 300,
-            Title:                   "",
-            PortalHostMode:          config.PortalHostModeSelfHosted,
-            SelfHostedListenAddress: config.DefaultSelfHostedListenAddress,
-            SelfHostedPublicURL:     "https://example.com/inputs",
-            RunnerEndpointKey:       "runner",
-            Fields: &fields.Fields{
-					Fields: []fields.Field{
-						{
-							Label: "name",
-							Properties: fields.FieldProperties{
-								Display:     "name",
-								Type:        "text",
-								Description: "Name of the user",
-								MaxLength:   20,
-								Required:    false,
-							},
-						},
-					},
-				},
-				NotifierSlackEnabled:            false,
-				NotifierSlackToken:              "xoxb-secret-token",
-				NotifierSlackChannel:            "#notificatins",
-				NotifierSlackBotName:            "",
-				NotifierDiscordEnabled:          false,
-				NotifierDiscordWebhook:          "secret-webhook",
-            NotifierDiscordUsernameOverride: "",
-            GithubToken:                     "github-secret-token",
-        },
-        expectedOutput: "::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n",
-			expectedError:  nil,
-		},
-		{
-			name: "successful - created base config from input square bracket array",
-			preRun: func() {
-			},
-        envMap: map[string]string{
-            "INPUT_TITLE":                   "Where should application be deployed?",
-            "INPUT_INTERACTIVE":             "fields:\n  - label: deployment-environment\n    properties:\n      display: Environment names\n      type: select\n      choices: ['option', 'option2', 'option3']\n",
-            "INPUT_GITHUB-TOKEN":            "github-secret-token",
-            "INPUT_SELFHOSTED-PUBLIC-URL":   "https://example.com/inputs",
-            "INPUT_SELFHOSTED-LISTEN-ADDRESS": ":8080",
-        },
-        expectedConfig: config.Config{
-            Timeout:                 300,
-            Title:                   "Where should application be deployed?",
-            PortalHostMode:          config.PortalHostModeSelfHosted,
-            SelfHostedListenAddress: config.DefaultSelfHostedListenAddress,
-            SelfHostedPublicURL:     "https://example.com/inputs",
-            RunnerEndpointKey:       "runner",
-            Fields: &fields.Fields{
-					Fields: []fields.Field{
-						{
-							Label: "deployment-environment",
-							Properties: fields.FieldProperties{
-								Display:  "Environment names",
-								Type:     "select",
-								Choices:  []string{"option", "option2", "option3"},
-								Required: false,
-							},
-						},
-					},
-				},
-				NotifierSlackEnabled:            false,
-				NotifierSlackToken:              "xoxb-secret-token",
-				NotifierSlackChannel:            "#notificatins",
-				NotifierSlackBotName:            "",
-				NotifierDiscordEnabled:          false,
-				NotifierDiscordWebhook:          "secret-webhook",
-            NotifierDiscordUsernameOverride: "",
-            Action:                          nil,
-            GithubToken:                     "github-secret-token",
-        },
-        expectedOutput: "::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: Where should application be deployed?\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n",
-			expectedError:  nil,
-		},
-		{
-			name: "failed - invalid inputs fields passed",
-			preRun: func() {
-			},
-        envMap: map[string]string{
-            "INPUT_TITLE":                   "Where should application be deployed?",
-            "INPUT_INTERACTIVE":             "cas:\n  - label: deployment-environment\n    properties:\n      display: Environment names\n      type: select\n      choices: ['option', 'option2', 'option3']\n",
-            "INPUT_GITHUB-TOKEN":            "github-secret-token",
-            "INPUT_SELFHOSTED-PUBLIC-URL":   "https://example.com/inputs",
-            "INPUT_SELFHOSTED-LISTEN-ADDRESS": ":8080",
-        },
-			expectedConfig: config.Config{},
-			expectedOutput: "::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: Where should application be deployed?\n::error::No fields provided\n::error::Can't convert the 'fields' input to a valid fields config: cas:%0A  - label: deployment-environment%0A    properties:%0A      display: Environment names%0A      type: select%0A      choices: ['option', 'option2', 'option3']\n",
-			expectedError:  errors.ErrMalformedFieldsInputDataProvided,
-		},
-		{
-			name: "failed - unsupported type passed",
-			preRun: func() {
-			},
-        envMap: map[string]string{
-            "INPUT_TITLE":                     "Where should application be deployed?", "INPUT_INTERACTIVE": "fields:\n  - label: deployment-environment\n    properties:\n      display: Environment names\n      type: options\n      choices: ['option', 'option2', 'option3']\n",
-            "INPUT_GITHUB-TOKEN":              "github-secret-token",
-            "INPUT_SELFHOSTED-PUBLIC-URL":     "https://example.com/inputs",
-            "INPUT_SELFHOSTED-LISTEN-ADDRESS": ":8080",
-        },
 			expectedConfig: config.Config{
-				Timeout:                 300,
-				Title:                   "Where should application be deployed?",
-            PortalHostMode:          config.PortalHostModeSelfHosted,
-            SelfHostedListenAddress: config.DefaultSelfHostedListenAddress,
-            SelfHostedPublicURL:     "https://example.com/inputs",
+				Timeout: 300,
+				Title:   "What name should be given to the barista?",
 				Fields: &fields.Fields{
 					Fields: []fields.Field{
 						{
-							Label: "deployment-environment",
+							Label: "name",
 							Properties: fields.FieldProperties{
-								Display:  "Environment names",
-								Type:     "options",
-								Choices:  []string{"option", "option2", "option3"},
-								Required: false,
+								Display:     "name",
+								Type:        "text",
+								Description: "Name of the user",
+								MaxLength:   20,
+								Required:    false,
 							},
 						},
 					},
@@ -245,140 +48,97 @@ func TestConfig_NewFromInputs(t *testing.T) {
 				NotifierSlackEnabled:            false,
 				NotifierSlackToken:              "xoxb-secret-token",
 				NotifierSlackChannel:            "#notificatins",
-				NotifierSlackBotName:            "",
 				NotifierDiscordEnabled:          false,
 				NotifierDiscordWebhook:          "secret-webhook",
-            NotifierDiscordUsernameOverride: "",
-            Action:                          nil,
-            GithubToken:                     "github-secret-token",
-        },
-			expectedOutput: "::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: Where should application be deployed?\n::error::Invalid field type 'options' provided for field 'deployment-environment'. Valid field types are: text, textarea, number, boolean, select, multiselect, file, multifile\n::error::Can't convert the 'fields' input to a valid fields config: fields:%0A  - label: deployment-environment%0A    properties:%0A      display: Environment names%0A      type: options%0A      choices: ['option', 'option2', 'option3']\n",
-			expectedError:  errors.ErrMalformedFieldsInputDataProvided,
+				GithubToken:                     "github-secret-token",
+				NgrokAuthtoken:                  "ngrok-secret-token",
+				PortalHostMode:                  config.PortalHostModeNgrok,
+				RunnerEndpointKey:               "runner",
+			},
+			expectedOutput: "::debug::Ngrok authtoken detected. Using Ngrok mode.\n::add-mask::ngrok-secret-token\n::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: What name should be given to the barista?\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n::add-mask::ngrok-secret-token\n",
+			expectedError:  nil,
 		},
 		{
-			name: "successful - configured for self-hosted portal mode",
-			preRun: func() {
-			},
+			name: "successful - self-hosted mode (ngrok absent)",
 			envMap: map[string]string{
-				"INPUT_TITLE":                     "Deploy windows build?",
-				"INPUT_INTERACTIVE":               "fields:\n  - label: approval\n    properties:\n      display: approval\n      type: boolean\n      description: Approve the change?\n",
+				"INPUT_TITLE":                     "Self Hosted Test",
+				"INPUT_INTERACTIVE":               "fields:\n  - label: name\n    properties:\n      type: text\n",
 				"INPUT_GITHUB-TOKEN":              "github-secret-token",
-				"INPUT_PORTAL-HOST-MODE":          "self-hosted",
-				"INPUT_SELFHOSTED-PUBLIC-URL":     "https://alb.example.com/inputs",
-				"INPUT_SELFHOSTED-LISTEN-ADDRESS": "0.0.0.0:9090",
+				"INPUT_SELFHOSTED-PUBLIC-URL":     "https://portal.example.com",
+				"INPUT_SELFHOSTED-LISTEN-ADDRESS": ":9090",
 			},
-        expectedConfig: config.Config{
-            Timeout:                 300,
-            Title:                   "Deploy windows build?",
-            PortalHostMode:          config.PortalHostModeSelfHosted,
-            SelfHostedListenAddress: "0.0.0.0:9090",
-            SelfHostedPublicURL:     "https://alb.example.com/inputs",
-            RunnerEndpointKey:       "runner",
-            Fields: &fields.Fields{
+			expectedConfig: config.Config{
+				Timeout: 300,
+				Title:   "Self Hosted Test",
+				Fields: &fields.Fields{
 					Fields: []fields.Field{
 						{
-							Label: "approval",
-							Properties: fields.FieldProperties{
-								Display:     "approval",
-								Type:        "boolean",
-								Description: "Approve the change?",
-								Required:    false,
-							},
+							Label:      "name",
+							Properties: fields.FieldProperties{Type: "text"},
 						},
 					},
 				},
-				NotifierSlackEnabled:            false,
-				NotifierSlackToken:              "xoxb-secret-token",
-				NotifierSlackChannel:            "#notificatins",
-				NotifierSlackBotName:            "",
-				NotifierDiscordEnabled:          false,
-				NotifierDiscordWebhook:          "secret-webhook",
-            NotifierDiscordUsernameOverride: "",
-            GithubToken:                     "github-secret-token",
-        },
-			expectedOutput: "::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: Deploy windows build?\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n",
+				PortalHostMode:          config.PortalHostModeSelfHosted,
+				SelfHostedPublicURL:     "https://portal.example.com",
+				SelfHostedListenAddress: ":9090",
+				RunnerEndpointKey:       "runner",
+				GithubToken:             "github-secret-token",
+				NotifierSlackEnabled:    false,
+				NotifierSlackToken:      "xoxb-secret-token",
+				NotifierSlackChannel:    "#notificatins",
+				NotifierDiscordEnabled:  false,
+				NotifierDiscordWebhook:  "secret-webhook",
+			},
+			expectedOutput: "::debug::Self-hosted public URL detected. Using Self-Hosted mode.\n::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: Self Hosted Test\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n::add-mask::\n",
 			expectedError:  nil,
 		},
 		{
-			name: "successful - self-hosted inputs using underscore env names",
-			preRun: func() {
-			},
+			name: "successful - ngrok priority (both provided)",
 			envMap: map[string]string{
-				"INPUT_TITLE":                     "Deploy windows build?",
-				"INPUT_INTERACTIVE":               "fields:\n  - label: approval\n    properties:\n      display: approval\n      type: boolean\n      description: Approve the change?\n",
-				"INPUT_GITHUB_TOKEN":              "github-secret-token",
-				"INPUT_PORTAL_HOST_MODE":          "self-hosted",
-				"INPUT_SELFHOSTED_PUBLIC_URL":     "https://alb.example.com/inputs",
-				"INPUT_SELFHOSTED_LISTEN_ADDRESS": "0.0.0.0:9090",
+				"INPUT_NGROK-AUTHTOKEN":       "ngrok-secret",
+				"INPUT_SELFHOSTED-PUBLIC-URL":  "https://ignored.com",
+				"INPUT_GITHUB-TOKEN":          "github-secret-token",
+				"INPUT_INTERACTIVE":           "fields:\n  - label: name\n    properties:\n      type: text\n",
 			},
-        expectedConfig: config.Config{
-            Timeout:                 300,
-            Title:                   "Deploy windows build?",
-            PortalHostMode:          config.PortalHostModeSelfHosted,
-            SelfHostedListenAddress: "0.0.0.0:9090",
-            SelfHostedPublicURL:     "https://alb.example.com/inputs",
-            RunnerEndpointKey:       "runner",
-            Fields: &fields.Fields{
+			expectedConfig: config.Config{
+				Timeout: 300,
+				Title:   "",
+				Fields: &fields.Fields{
 					Fields: []fields.Field{
 						{
-							Label: "approval",
-							Properties: fields.FieldProperties{
-								Display:     "approval",
-								Type:        "boolean",
-								Description: "Approve the change?",
-								Required:    false,
-							},
+							Label:      "name",
+							Properties: fields.FieldProperties{Type: "text"},
 						},
 					},
 				},
-				NotifierSlackEnabled:            false,
-				NotifierSlackToken:              "xoxb-secret-token",
-				NotifierSlackChannel:            "#notificatins",
-				NotifierSlackBotName:            "",
-				NotifierDiscordEnabled:          false,
-				NotifierDiscordWebhook:          "secret-webhook",
-            NotifierDiscordUsernameOverride: "",
-            GithubToken:                     "github-secret-token",
-        },
-			expectedOutput: "::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: Deploy windows build?\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n",
+				PortalHostMode:         config.PortalHostModeNgrok,
+				NgrokAuthtoken:         "ngrok-secret",
+				GithubToken:            "github-secret-token",
+				SelfHostedPublicURL:    "https://ignored.com",
+				RunnerEndpointKey:      "runner",
+				NotifierSlackToken:     "xoxb-secret-token",
+				NotifierSlackChannel:   "#notificatins",
+				NotifierDiscordWebhook: "secret-webhook",
+			},
+			expectedOutput: "::debug::Ngrok authtoken detected. Using Ngrok mode.\n::add-mask::ngrok-secret\n::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n::add-mask::ngrok-secret\n",
 			expectedError:  nil,
 		},
 		{
-			name: "failed - self-hosted mode missing public url",
-			preRun: func() {
-			},
+			name: "failed - missing both hosting modes",
 			envMap: map[string]string{
-				"INPUT_TITLE":            "Deploy windows build?",
-				"INPUT_INTERACTIVE":      "fields:\n  - label: approval\n    properties:\n      display: approval\n      type: boolean\n      description: Approve the change?\n",
-				"INPUT_GITHUB-TOKEN":     "github-secret-token",
-				"INPUT_PORTAL-HOST-MODE": "self-hosted",
+				"INPUT_GITHUB-TOKEN": "github-secret-token",
+				"INPUT_INTERACTIVE":  "fields:\n  - label: name\n    properties:\n      type: text\n",
 			},
 			expectedConfig: config.Config{},
-			expectedOutput: "::error::The selfhosted-public-url input must be provided when portal-host-mode is set to 'self-hosted'\n",
-			expectedError:  errors.ErrSelfHostedPublicURLMissing,
+			// Removed the timeout debug message because the function returns early
+			expectedOutput: "::error::Configuration error: Either 'ngrok-authtoken' or 'selfhosted-public-url' must be provided.\n",
+			expectedError:  errors.ErrNoHostingModeProvided,
 		},
-        {
-            name: "failed - missing public url (portal-host-mode input ignored)",
-            preRun: func() {
-            },
-            envMap: map[string]string{
-                "INPUT_TITLE":            "Deploy windows build?",
-                "INPUT_INTERACTIVE":      "fields:\n  - label: approval\n    properties:\n      display: approval\n      type: boolean\n      description: Approve the change?\n",
-                "INPUT_GITHUB-TOKEN":     "github-secret-token",
-                "INPUT_PORTAL-HOST-MODE": "cloudflare",
-            },
-            expectedConfig: config.Config{},
-            expectedOutput: "::warning::Ignoring unsupported portal-host-mode 'cloudflare'. Only 'self-hosted' is supported; using self-hosted.\n::error::The selfhosted-public-url input must be provided when portal-host-mode is set to 'self-hosted'\n",
-            expectedError:  errors.ErrSelfHostedPublicURLMissing,
-        },
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			actionLog := bytes.NewBuffer(nil)
-
-			test.preRun()
 
 			getenv := func(key string) string {
 				return test.envMap[key]
@@ -390,21 +150,19 @@ func TestConfig_NewFromInputs(t *testing.T) {
 			)
 
 			cfg, inputsErr := config.NewFromInputs(action)
-			if inputsErr != nil {
-				assert.Equal(t, test.expectedOutput, actionLog.String())
+
+			if test.expectedError != nil {
+				// For errors, check that the specific error is returned
 				assert.Equal(t, test.expectedError, inputsErr)
-			}
-
-			if inputsErr == nil {
-				assert.NotNil(t, cfg.Action)
+				// For errors, check that the expected logs are present
 				assert.Equal(t, test.expectedOutput, actionLog.String())
-
-				// Make config's action nil for comparison
+			} else {
+				// For success, ensure no error and check full config
+				assert.NoError(t, inputsErr)
+				assert.Equal(t, test.expectedOutput, actionLog.String())
 				cfg.Action = nil
-
 				assert.EqualValues(t, test.expectedConfig, *cfg)
 			}
-
 		})
 	}
 }

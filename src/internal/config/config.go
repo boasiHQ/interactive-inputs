@@ -1,13 +1,12 @@
 package config
 
 import (
-    "fmt"
-    "strconv"
-    "strings"
+	"strconv"
+	"strings"
 
-    "github.com/boasihq/interactive-inputs/internal/errors"
-    "github.com/boasihq/interactive-inputs/internal/fields"
-    githubactions "github.com/sethvargo/go-githubactions"
+	"github.com/boasihq/interactive-inputs/internal/errors"
+	"github.com/boasihq/interactive-inputs/internal/fields"
+	githubactions "github.com/sethvargo/go-githubactions"
 )
 
 type Config struct {
@@ -21,18 +20,6 @@ type Config struct {
 	// Timeout is the timeout that will be used to manage how long the portal
 	// will be available for users to use before it is automatically deactivated
 	Timeout int
-
-	// PortalHostMode determines how the portal is exposed (ngrok tunnel vs self-hosted)
-	PortalHostMode string
-
-	// SelfHostedListenAddress is the address the HTTP server should listen on when running
-	// in self-hosted mode (for example, :8080 or 0.0.0.0:8080). This can then be placed behind
-	// any load balancer such as an AWS ALB.
-	SelfHostedListenAddress string
-
-	// SelfHostedPublicURL is the URL that users (and notifications) should use to reach the portal
-	// when operating in self-hosted mode.
-	SelfHostedPublicURL string
 
 	// NotifierSlackEnabled will be used to determine whether the Slack notifier
 	// is enabled or not
@@ -71,12 +58,23 @@ type Config struct {
 	// GithubToken is the token that will be used to allow action to leverage the GitHub API
 	GithubToken string
 
-    // RunnerEndpointKey is a unique, URL-safe key used to namespace all
-    // endpoints for a specific runner invocation. This ensures requests
-    // (submit/cancel/uploads) are routed to the correct runner instance.
-    RunnerEndpointKey string
+	// NgrokAuthtoken is the authtoken that will be used to make Ngrok tunnels to host the
+	// interactive inputs portals
+	NgrokAuthtoken string
 
-    Action *githubactions.Action
+	// PortalHostMode determines how the portal is exposed (ngrok vs self-hosted)
+	PortalHostMode string
+
+	// SelfHostedListenAddress is the bind address (e.g., :8080)
+	SelfHostedListenAddress string
+
+	// SelfHostedPublicURL is the FQDN users use to reach the portal
+	SelfHostedPublicURL string
+
+	// RunnerEndpointKey is used for path namespacing
+	RunnerEndpointKey string
+
+	Action *githubactions.Action
 }
 
 const (
@@ -84,15 +82,10 @@ const (
 	// will be available for users to use before it is automatically deactivated
 	//
 	// Defaults to 300 seconds (5 minutes)
-	DefaultTimeout int = 300
-
-	// DefaultSelfHostedListenAddress is the default bind address when the action runs in self-hosted mode
+	DefaultTimeout                 int    = 300
+	PortalHostModeSelfHosted       string = "self-hosted"
+	PortalHostModeNgrok            string = "ngrok"
 	DefaultSelfHostedListenAddress string = ":8080"
-)
-
-const (
-    // PortalHostModeSelfHosted exposes the portal via a self-hosted HTTP listener
-    PortalHostModeSelfHosted string = "self-hosted"
 )
 
 // NewFromInputs creates a new Config instance from the provided GitHub Actions inputs.
@@ -103,35 +96,39 @@ const (
 func NewFromInputs(action *githubactions.Action) (*Config, error) {
 
 	var err error
+	var portalHostMode string
 
-    // self-hosted is the only supported mode; read input for compatibility and warn if not supported
-    portalHostModeRaw := strings.TrimSpace(strings.ToLower(getInput(action, "portal-host-mode")))
-    if portalHostModeRaw != "" && portalHostModeRaw != PortalHostModeSelfHosted {
-        action.Warningf("Ignoring unsupported portal-host-mode '%s'. Only '%s' is supported; using self-hosted.", portalHostModeRaw, PortalHostModeSelfHosted)
-    }
-    portalHostModeInput := PortalHostModeSelfHosted
+	ngrokAuthtokenInput := strings.TrimSpace(action.GetInput("ngrok-authtoken"))
+	selfHostedPublicURL := strings.TrimSpace(action.GetInput("selfhosted-public-url"))
+	selfHostedListenAddress := action.GetInput("selfhosted-listen-address")
 
-	selfHostedListenAddress := getInput(action, "selfhosted-listen-address")
-	if strings.TrimSpace(selfHostedListenAddress) == "" {
-		selfHostedListenAddress = DefaultSelfHostedListenAddress
+	// handle input for fetching ngrok authtoken
+	if ngrokAuthtokenInput != "" {
+		portalHostMode = PortalHostModeNgrok
+		action.Debugf("Ngrok authtoken detected. Using Ngrok mode.")
+		action.AddMask(ngrokAuthtokenInput)
+	} else if selfHostedPublicURL != "" {
+		portalHostMode = PortalHostModeSelfHosted
+		action.Debugf("Self-hosted public URL detected. Using Self-Hosted mode.")
+
+		if strings.TrimSpace(selfHostedListenAddress) == "" {
+			selfHostedListenAddress = DefaultSelfHostedListenAddress
+		}
+	} else {
+		// Raise error if neither is provided
+		action.Errorf("Configuration error: Either 'ngrok-authtoken' or 'selfhosted-public-url' must be provided.")
+		return nil, errors.ErrNoHostingModeProvided
 	}
-	selfHostedPublicURL := strings.TrimSpace(getInput(action, "selfhosted-public-url"))
 
-    if portalHostModeInput == PortalHostModeSelfHosted && selfHostedPublicURL == "" {
-        action.Errorf("The selfhosted-public-url input must be provided when portal-host-mode is set to '%s'", PortalHostModeSelfHosted)
-        return nil, errors.ErrSelfHostedPublicURLMissing
-    }
-
-    // handle input for fetching github token
-    githubTokenInput := getInput(action, "github-token")
-    if githubTokenInput == "" {
-        action.Errorf("The github-token was not provided, this is needed before the action can be used")
-        return nil, errors.ErrGithubTokenNotProvided
-    }
-
+	// handle input for fetching github token
+	githubTokenInput := action.GetInput("github-token")
+	if githubTokenInput == "" {
+		action.Errorf("The github-token was not provided, this is needed before the action can be used")
+		return nil, errors.ErrGithubTokenNotProvided
+	}
 	// handle input for fetching timeout
 	var timeout int
-	timeoutInput := getInput(action, "timeout")
+	timeoutInput := action.GetInput("timeout")
 	if timeoutInput == "" {
 		timeout = DefaultTimeout
 		action.Debugf("The timeout was not provided, will use the default timeout of %d seconds", DefaultTimeout)
@@ -145,103 +142,89 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 	}
 
 	// handle input for fetching form title if provided
-	titleInput := getInput(action, "title")
+	titleInput := action.GetInput("title")
 	if titleInput != "" {
 		action.Debugf("Title input provided: %s", titleInput)
 	}
 
 	// handle input for fetching interactive inputs portal fields if provided
-	interactiveInput := getInput(action, "interactive")
+	interactiveInput := action.GetInput("interactive")
 	fields, err := fields.MarshalStringIntoValidFieldsStruct(interactiveInput, action)
 	if err != nil {
 		action.Errorf("Can't convert the 'fields' input to a valid fields config: %s", interactiveInput)
 		return nil, errors.ErrMalformedFieldsInputDataProvided
 	}
 
-    // handle input for fetching slack notifier
-    var notifierSlackToken string = "xoxb-secret-token"
-    var notifierSlackChannel string = "#notificatins"
-    var notifierSlackBotName string
-    var notifierSlackThreadTs string
+	runnerEndpointKey := strings.Trim(action.GetInput("runner-endpoint-key"), "/ ")
+	if runnerEndpointKey == "" {
+		// Fallback: derive from GitHub Run ID if available, else use "runner"
+		if ctx, err := action.Context(); err == nil && ctx.RunID != 0 {
+			runnerEndpointKey = strconv.FormatInt(ctx.RunID, 10)
+		} else {
+			runnerEndpointKey = "runner"
+		}
+	}
 
-	notifierSlackEnabledInput := getInput(action, "notifier-slack-enabled") == "true"
+	// handle input for fetching slack notifier
+	var notifierSlackToken string = "xoxb-secret-token"
+	var notifierSlackChannel string = "#notificatins"
+	var notifierSlackBotName string
+	var notifierSlackThreadTs string
+
+	notifierSlackEnabledInput := action.GetInput("notifier-slack-enabled") == "true"
 	if notifierSlackEnabledInput {
 
-		notifierSlackTokenInput := getInput(action, "notifier-slack-token")
+		notifierSlackTokenInput := action.GetInput("notifier-slack-token")
 		if notifierSlackTokenInput == notifierSlackToken {
 			action.Errorf("A valid Slack token was not provided, please provide a valid Slack token when enabling the Slack notifier")
 			return nil, errors.ErrInvalidSlackTokenProvided
 		}
 		notifierSlackToken = notifierSlackTokenInput
-		notifierSlackChannel = getInput(action, "notifier-slack-channel")
-		notifierSlackBotName = getInput(action, "notifier-slack-bot")
-		notifierSlackThreadTs = strings.TrimSpace(getInput(action, "notifier-slack-thread-ts"))
+		notifierSlackChannel = action.GetInput("notifier-slack-channel")
+		notifierSlackBotName = action.GetInput("notifier-slack-bot")
+		notifierSlackThreadTs = strings.TrimSpace(action.GetInput("notifier-slack-thread-ts"))
 	}
 
-    // handle input for fetching discord notifier
-    var notifierDiscordWebhook string = "secret-webhook"
-    var notifierDiscordUsernameOverride string
-    var notifierDiscordThreadId string
+	// handle input for fetching discord notifier
+	var notifierDiscordWebhook string = "secret-webhook"
+	var notifierDiscordUsernameOverride string
+	var notifierDiscordThreadId string
 
-	notifierDiscordEnabledInput := getInput(action, "notifier-discord-enabled") == "true"
+	notifierDiscordEnabledInput := action.GetInput("notifier-discord-enabled") == "true"
 	if notifierDiscordEnabledInput {
 
-		notifierDiscordWebhookInput := getInput(action, "notifier-discord-webhook")
+		notifierDiscordWebhookInput := action.GetInput("notifier-discord-webhook")
 		if notifierDiscordWebhookInput == notifierDiscordWebhook {
 			action.Errorf("A valid Discord webhook was not provided, please provide a valid Discord webhook when enabling the Discord notifier")
 			return nil, errors.ErrInvalidDiscordWebhookProvided
 		}
 
 		notifierDiscordWebhook = notifierDiscordWebhookInput
-		notifierDiscordUsernameOverride = getInput(action, "notifier-discord-username")
-		notifierDiscordThreadId = strings.TrimSpace(getInput(action, "notifier-discord-thread-id"))
+		notifierDiscordUsernameOverride = action.GetInput("notifier-discord-username")
+		notifierDiscordThreadId = strings.TrimSpace(action.GetInput("notifier-discord-thread-id"))
 	}
 
-    // handle masking of sensitive data
-    action.AddMask(notifierSlackToken)
-    action.AddMask(notifierDiscordWebhook)
-    action.AddMask(githubTokenInput)
+	// handle masking of sensitive data
+	action.AddMask(notifierSlackToken)
+	action.AddMask(notifierDiscordWebhook)
+	action.AddMask(githubTokenInput)
+	action.AddMask(ngrokAuthtokenInput)
 
-    // derive or accept a runner endpoint key for namespacing endpoints
-    // this allows multiple runner instances to coexist under unique paths
-    runnerEndpointKey := strings.Trim(getInput(action, "runner-endpoint-key"), "/ ")
-    if runnerEndpointKey == "" {
-        // Try to derive from the GitHub context if available
-        if ctx, err := action.Context(); err == nil && ctx.RunID != 0 {
-            sha := strings.TrimSpace(ctx.SHA)
-            if sha != "" {
-                // Use short SHA for readability
-                short := sha
-                if len(short) > 8 {
-                    short = sha[:8]
-                }
-                runnerEndpointKey = fmt.Sprintf("input-%s-%d", short, ctx.RunID)
-            } else {
-                runnerEndpointKey = fmt.Sprintf("run-%d", ctx.RunID)
-            }
-        } else {
-            // Safe, deterministic placeholder suitable for tests/local
-            runnerEndpointKey = "runner"
-        }
-    }
-
-    c := Config{
-        Title:                   titleInput,
-        Fields:                  fields,
-        Timeout:                 timeout,
-        PortalHostMode:          portalHostModeInput,
-        SelfHostedListenAddress: selfHostedListenAddress,
-        SelfHostedPublicURL:     selfHostedPublicURL,
-
-        GithubToken: githubTokenInput,
-
-        RunnerEndpointKey: runnerEndpointKey,
-
-        NotifierSlackEnabled:  notifierSlackEnabledInput,
-        NotifierSlackToken:    notifierSlackToken,
-        NotifierSlackChannel:  notifierSlackChannel,
-        NotifierSlackBotName:  notifierSlackBotName,
-        NotifierSlackThreadTs: notifierSlackThreadTs,
+	c := Config{
+		Title:                   titleInput,
+		Fields:                  fields,
+		Timeout:                 timeout,
+		PortalHostMode:          portalHostMode,
+		SelfHostedPublicURL:     selfHostedPublicURL,
+		SelfHostedListenAddress: selfHostedListenAddress,
+		RunnerEndpointKey:       runnerEndpointKey,
+		NgrokAuthtoken:          ngrokAuthtokenInput,
+		GithubToken:             githubTokenInput,
+		NotifierSlackEnabled:    notifierSlackEnabledInput,
+		NotifierSlackToken:      notifierSlackToken,
+		NotifierSlackChannel:    notifierSlackChannel,
+		NotifierSlackBotName:    notifierSlackBotName,
+		NotifierSlackThreadTs:   notifierSlackThreadTs,
 
 		NotifierDiscordEnabled:          notifierDiscordEnabledInput,
 		NotifierDiscordWebhook:          notifierDiscordWebhook,
@@ -249,6 +232,6 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 		NotifierDiscordThreadId:         notifierDiscordThreadId,
 
 		Action: action,
-    }
-    return &c, nil
+	}
+	return &c, nil
 }
