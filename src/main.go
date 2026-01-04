@@ -35,8 +35,10 @@ func run() error {
 		}
 	} else {
 		cfg = &config.Config{
-			Action:  action,
-			Timeout: config.DefaultTimeout,
+			Action:            action,
+			Timeout:           config.DefaultTimeout,
+			PortalHostMode:    config.PortalHostModeNgrok,
+			RunnerEndpointKey: "",
 		}
 	}
 

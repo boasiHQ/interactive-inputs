@@ -17,4 +17,16 @@ type CreateInteractiveInputsPortalRequest struct {
 	// Timeout is how long the portal will be available for users to use before it is
 	// automatically deactivated
 	Timeout string
+	
+	// BasePath is the path prefix to reach this runner's portal, e.g. "/run-123"
+    BasePath string
+
+    // BalloonData holds per-field suggestion values for the scroll balloon UI
+    // map key: field label; value: list of suggestions
+    BalloonData map[string][]string
+
+    // PreOutput holds a small read-only output (e.g. previous step result) to
+    // display above a field. Keyed by field label.
+    PreOutput map[string]struct{ Title, Value string }
+
 }

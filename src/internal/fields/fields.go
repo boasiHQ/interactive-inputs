@@ -46,19 +46,34 @@ type Field struct {
 // MaxLength is the maximum length of the field's value.
 // DisableAutoCopySelection is whether the field should stop automatically coping the selected option to the clipboard (valid fields: select, multiselect).
 type FieldProperties struct {
-	Display                  string   `yaml:"display"`
-	Type                     string   `yaml:"type"`
-	Description              string   `yaml:"description"`
-	Choices                  []string `yaml:"choices"`
-	Required                 bool     `yaml:"required"`
-	MaxLength                int      `yaml:"maxLength"`
-	Placeholder              string   `yaml:"placeholder"`
-	NumberMin                int      `yaml:"minNumber"`
-	NumberMax                int      `yaml:"maxNumber"`
-	DefaultValue             string   `yaml:"defaultValue"`
-	ReadOnly                 bool     `yaml:"readOnly"`
-	DisableAutoCopySelection bool     `yaml:"disableAutoCopySelection"`
-	AcceptedFileTypes        []string `yaml:"acceptedFileTypes"`
+    Display                  string   `yaml:"display"`
+    Type                     string   `yaml:"type"`
+    Description              string   `yaml:"description"`
+    Choices                  []string `yaml:"choices"`
+    Required                 bool     `yaml:"required"`
+    MaxLength                int      `yaml:"maxLength"`
+    Placeholder              string   `yaml:"placeholder"`
+    NumberMin                int      `yaml:"minNumber"`
+    NumberMax                int      `yaml:"maxNumber"`
+    DefaultValue             string   `yaml:"defaultValue"`
+    ReadOnly                 bool     `yaml:"readOnly"`
+    DisableAutoCopySelection bool     `yaml:"disableAutoCopySelection"`
+    AcceptedFileTypes        []string `yaml:"acceptedFileTypes"`
+
+    // BalloonValues renders a scrollable suggestion balloon next to the input
+    // containing these static values for quick selection.
+    BalloonValues            []string `yaml:"balloonValues"`
+
+    // BalloonValueEnvKeys are environment variable names whose values will be
+    // added to the suggestion balloon (useful for passing previous outputs).
+    BalloonValueEnvKeys      []string `yaml:"balloonValueEnvKeys"`
+
+    // OutputFromEnvKey if provided, the UI will render a small read-only
+    // output window above the field with the value from the given env var.
+    OutputFromEnvKey         string   `yaml:"outputFromEnvKey"`
+    // OutputTitle is an optional title shown in the output window. If empty,
+    // a sensible default such as "Previous Output" is used.
+    OutputTitle              string   `yaml:"outputTitle"`
 }
 
 // MarshalStringIntoValidFieldsStruct takes a YAML-formatted string representation of a Fields

@@ -42,7 +42,7 @@
                       </h2>
                     {{end}}
                 </div>
-                <form id="form-interactive-inputs"  hx-post="/submit" hx-target="this" hx-swap="outerHTML" method="POST" class="mx-auto mt-16 max-w-xl sm:mt-20">
+                <form id="form-interactive-inputs"  hx-post="{{ .BasePath }}/submit" hx-target="this" hx-swap="outerHTML" method="POST" class="mx-auto mt-16 max-w-xl sm:mt-20">
                     <div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
                       {{ if and .Fields .Fields.Fields }}
                
@@ -165,6 +165,21 @@
                                             </div>
                                         </div>
                                       {{ end }}
+                                      {{ $bvals := index $.BalloonData $inputLabel }}
+                                      {{ if $bvals }}
+                                        <div class="dropdown dropdown-right">
+                                          <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]" title="Suggestions">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" class="h-4 w-4">
+                                              <path d="M8 0a5.53 5.53 0 0 0-3.594 9.75c-.199.66-.53 1.32-1.086 1.879A.5.5 0 0 0 3.5 12c1.54 0 2.565-.666 3.311-1.54A5.53 5.53 0 1 0 8 0z"/>
+                                            </svg>
+                                          </div>
+                                          <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 shadow max-h-48 overflow-y-auto">
+                                            {{ range $v := $bvals }}
+                                              <li><a href="#" data-target="{{ $inputLabel }}" data-value="{{ $v }}" onclick="setInputValue(this.dataset.target, this.dataset.value); return false;">{{ $v }}</a></li>
+                                            {{ end }}
+                                          </ul>
+                                        </div>
+                                      {{ end }}
                                   </span>
                                   <div class="mt-2.5">
                                       <input type="text" name="{{ $inputLabel }}" id="{{ $inputLabel }}" autocomplete="on" {{ if gt $inputMaxLength 0 }} maxlength="{{ $inputMaxLength }}" {{ end}} {{ if $inputRequired }} required {{ end }}  {{ if $inputPlaceholder }} placeholder="{{ $inputPlaceholder }}" {{ end }} {{ if $inputDefaultValue }}  value="{{ $inputDefaultValue }}" {{ end }} class="input input-bordered w-full max-w-xl" />
@@ -200,6 +215,21 @@
                                                 <p>{{ $inputDescription }}</p>
                                               </div>
                                             </div>
+                                        </div>
+                                      {{ end }}
+                                      {{ $bvals := index $.BalloonData $inputLabel }}
+                                      {{ if $bvals }}
+                                        <div class="dropdown dropdown-right">
+                                          <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]" title="Suggestions">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" class="h-4 w-4">
+                                              <path d="M8 0a5.53 5.53 0 0 0-3.594 9.75c-.199.66-.53 1.32-1.086 1.879A.5.5 0 0 0 3.5 12c1.54 0 2.565-.666 3.311-1.54A5.53 5.53 0 1 0 8 0z"/>
+                                            </svg>
+                                          </div>
+                                          <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 shadow max-h-48 overflow-y-auto">
+                                            {{ range $v := $bvals }}
+                                              <li><a href="#" data-target="{{ $inputLabel }}" data-value="{{ $v }}" onclick="setInputValue(this.dataset.target, this.dataset.value); return false;">{{ $v }}</a></li>
+                                            {{ end }}
+                                          </ul>
                                         </div>
                                       {{ end }}
                                   </span>                            
@@ -240,6 +270,18 @@
                                         </div>
                                       {{ end }}
                                   </span>                            
+                                  {{ $pre := index $.PreOutput $inputLabel }}
+                                  {{ if $pre.Value }}
+                                  <div class="mt-2.5" x-data="{open: false}">
+                                    <div class="flex items-center justify-between bg-[#F0F9FF] border border-[#CCE9FF] rounded px-3 py-2">
+                                      <div class="text-xs text-[#334155] font-semibold">{{ if $pre.Title }}{{ $pre.Title }}{{ else }}Previous Output{{ end }}</div>
+                                      <button type="button" class="btn btn-ghost btn-xs" @click="open = !open" x-text="open ? 'Hide' : 'Show'"></button>
+                                    </div>
+                                    <div x-show="open" x-cloak class="border border-t-0 border-[#CCE9FF] rounded-b px-3 py-2">
+                                      <pre class="mt-0 text-xs text-[#0f172a] whitespace-pre-wrap break-words max-h-64 overflow-y-auto">{{ $pre.Value }}</pre>
+                                    </div>
+                                  </div>
+                                  {{ end }}
                                   <div class="mt-2.5">
                                     <select id="{{ $inputLabel }}" name="{{ $inputLabel }}"  {{ if $inputRequired }} required {{ end }}
                                       {{ if not $inputDisableAutoCopySelection }} x-on:change="copyNotifyReturn($event.target.value)" {{ end }} 
@@ -330,6 +372,21 @@
                                             </div>
                                         </div>
                                       {{ end }}
+                                      {{ $bvals := index $.BalloonData $inputLabel }}
+                                      {{ if $bvals }}
+                                        <div class="dropdown dropdown-right">
+                                          <div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info text-[#3c50e0]" title="Suggestions">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" class="h-4 w-4">
+                                              <path d="M8 0a5.53 5.53 0 0 0-3.594 9.75c-.199.66-.53 1.32-1.086 1.879A.5.5 0 0 0 3.5 12c1.54 0 2.565-.666 3.311-1.54A5.53 5.53 0 1 0 8 0z"/>
+                                            </svg>
+                                          </div>
+                                          <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 shadow max-h-48 overflow-y-auto">
+                                            {{ range $v := $bvals }}
+                                              <li><a href="#" data-target="{{ $inputLabel }}" data-value="{{ $v }}" onclick="setInputValue(this.dataset.target, this.dataset.value); return false;">{{ $v }}</a></li>
+                                            {{ end }}
+                                          </ul>
+                                        </div>
+                                      {{ end }}
                                   </span>     
                                   <div class="mt-2.5">
                                       <textarea id="{{ $inputLabel }}" name="{{ $inputLabel }}"  {{ if $inputRequired }} required {{ end }} {{ if $inputPlaceholder }} placeholder="{{ $inputPlaceholder }}" {{ end }} {{ if $inputReadOnly }}  disabled {{ end }} class="textarea textarea-bordered textarea-lg w-full max-w-xl">{{ if $inputDefaultValue }}{{ $inputDefaultValue }}{{ end }}</textarea>
@@ -394,7 +451,7 @@
                     </svg> <div class="text-[#808180]">This Interactive Inputs portal expires in approximately <span class="font-medium">{{ .Timeout }} minutes</span></div></div>
                     <!-- ==== Reminder End ==== -->
                     <div class="mt-8 flex flex-col justify-center gap-y-3 items-center">
-                        <a hx-post="/cancel" hx-target="#form-interactive-inputs" type="submit" class="btn btn-ghost btn-md btn-wide ">Cancel</a>
+                        <a hx-post="{{ .BasePath }}/cancel" hx-target="#form-interactive-inputs" type="submit" class="btn btn-ghost btn-md btn-wide ">Cancel</a>
                         <button 
                         form="form-interactive-inputs"
                         type="submit" class="btn btn-wide btn-md">Submit</button>
@@ -443,7 +500,7 @@
                       content: `Reseting provided file(s).`
                     });
 
-                    fetch(`/api/v1/reset/${inputLabel}`, {
+                    fetch(`{{ .BasePath }}/api/v1/reset/${inputLabel}`, {
                       method: 'DELETE',
                     })
                       .then(response => {
@@ -501,7 +558,7 @@
                       content: `Uploading <b>${files.length}</b> file(s).`
                   });
 
-                  fetch('/api/v1/upload', {
+                  fetch('{{ .BasePath }}/api/v1/upload', {
                     method: 'POST',
                     body: formData,
                   })
@@ -536,6 +593,33 @@
                         });
                       }, 1000);
                     });
+                }
+
+                // setInputValue sets the target input or select element's value from a suggestion
+                const setInputValue = (inputLabel, value) => {
+                  if (!inputLabel) return;
+                  const el = document.getElementById(inputLabel);
+                  if (!el) return;
+
+                  if (el.tagName === 'SELECT') {
+                    const opts = Array.from(el.options || []);
+                    const match = opts.find(o => (o.value || o.text) === value || o.text === value);
+                    if (match) {
+                      el.value = match.value || match.text;
+                      el.dispatchEvent(new Event('change'));
+                      if (typeof copyNotifyReturn === 'function') {
+                        copyNotifyReturn(el.value);
+                      }
+                      toasty.push({ title: 'Selection applied', content: `Selected: <b>${el.value}</b>` });
+                    } else {
+                      toasty.push({ title: 'Suggestion not in options', content: `\`${value}\` is not a valid option.`, style: 'error' });
+                    }
+                    return;
+                  }
+
+                  // text/textarea
+                  el.value = value;
+                  toasty.push({ title: 'Filled from suggestion', content: `Inserted: <b>${value}</b>` });
                 }
             </script>
            

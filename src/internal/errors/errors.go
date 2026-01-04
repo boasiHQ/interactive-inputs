@@ -19,6 +19,9 @@ var (
 	// environment variable is not set.
 	ErrGitHubWorkspaceEnvVarIsMissing = errors.New("GitHubWorkspaceEnvVarIsMissing")
 
+	// hosting mode should be self or ngrok
+	ErrNoHostingModeProvided = errors.New("NoHostingModeProvided")
+
 	// ErrInvalidLabelProvided is returned when the label provided in the input data cannot
 	// be converted to kebab case
 	ErrInvalidLabelProvided = errors.New("InvalidLabelProvided")
@@ -52,4 +55,10 @@ var (
 
 	// ErrDuplicateFieldLabelDetected is returned when the same field label is detected in the input data
 	ErrDuplicateFieldLabelDetected = errors.New("DuplicateFieldLabelDetected")
+
+	// ErrInvalidPortalHostModeProvided is returned when an unsupported option is provided for how to expose the portal
+	ErrInvalidPortalHostModeProvided = errors.New("InvalidPortalHostModeProvided")
+
+	// ErrSelfHostedPublicURLMissing is returned when self-hosted mode is enabled but no public url was supplied
+	ErrSelfHostedPublicURLMissing = errors.New("SelfHostedPublicURLMissing")
 )
