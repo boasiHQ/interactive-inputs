@@ -1,13 +1,13 @@
 package runner
 
 import (
-    "context"
-    "fmt"
-    "io/fs"
-    "net/http"
-    "os"
-    "strings"
-    "time"
+	"context"
+	"fmt"
+	"io/fs"
+	"net/http"
+	"os"
+	"strings"
+	"time"
 
 	"github.com/boasihq/interactive-inputs/internal/config"
 	"github.com/boasihq/interactive-inputs/internal/errors"
@@ -130,18 +130,26 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 
 	portalEventHandler := portal.NewHandler(cfg.Action, isRunningLocal, embeddedContent, embeddedContentFilePathPrefix, cfg.GithubToken, inputFieldLabelToCacheDirMapping)
 
+	// Normalize base path per hosting mode
+	basePath := strings.Trim(cfg.RunnerEndpointKey, "/ ")
+	if cfg.PortalHostMode != config.PortalHostModeNgrok && basePath == "" {
+		basePath = "runner"
+	}
+	cfg.RunnerEndpointKey = basePath
+	cfg.Action.Debugf("runner-endpoint-key resolved to '%s' for portal-host-mode '%s'", basePath, cfg.PortalHostMode)
+
 	/// Routes
 	r := mux.NewRouter()
 
-    portal.AttachRoutes(&portal.AttachRoutesRequest{
-        Router:                        r,
-        PortalEventHandler:            portalEventHandler,
-        UiHandler:                     uiHandler,
-        EmbeddedContent:               embeddedContent,
-        EmbeddedContentFilePathPrefix: embeddedContentFilePathPrefix,
-        ActionPkg:                     cfg.Action,
-        BasePath:                      cfg.RunnerEndpointKey,
-    })
+	portal.AttachRoutes(&portal.AttachRoutesRequest{
+		Router:                        r,
+		PortalEventHandler:            portalEventHandler,
+		UiHandler:                     uiHandler,
+		EmbeddedContent:               embeddedContent,
+		EmbeddedContentFilePathPrefix: embeddedContentFilePathPrefix,
+		ActionPkg:                     cfg.Action,
+		BasePath:                      cfg.RunnerEndpointKey,
+	})
 
 	/// Server
 	serverDone := make(chan error, 1)
@@ -150,13 +158,20 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 	notifierDiscordEnterInputMessageTmpl := "[**Enter required input**](%s)"
 	universalNotifierFailedToSelfHost := "A failure has occurred while starting/running your self-hosted portal: %v"
 
-    if isRunningLocal {
-        localPort := ":8080"
-        server := &http.Server{Addr: localPort, Handler: r}
-        completeLocalUrl := fmt.Sprintf("http://localhost%s", localPort)
-        // add runner endpoint key to base url
-        completeLocalUrl = fmt.Sprintf("%s/%s/", strings.TrimRight(completeLocalUrl, "/"), strings.Trim(cfg.RunnerEndpointKey, "/ "))
-        serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, completeLocalUrl)
+	formatBasePath := func(base string) string {
+		if base == "" {
+			return "/"
+		}
+		return fmt.Sprintf("/%s/", base)
+	}
+
+	if isRunningLocal {
+		localPort := ":8080"
+		server := &http.Server{Addr: localPort, Handler: r}
+		completeLocalUrl := fmt.Sprintf("http://localhost%s", localPort)
+		// add runner endpoint key to base url only when present
+		completeLocalUrl = fmt.Sprintf("%s%s", strings.TrimRight(completeLocalUrl, "/"), formatBasePath(basePath))
+		serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, completeLocalUrl)
 
 		cfg.Action.Noticef(serverInitMessage)
 		if slackNotifier.Enabled() {
@@ -200,10 +215,10 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 			serverDone <- server.Shutdown(ctx)
 		}()
 
-    } else {
-        server := &http.Server{Addr: cfg.SelfHostedListenAddress, Handler: r}
-        publicURL := fmt.Sprintf("%s/%s/", strings.TrimRight(cfg.SelfHostedPublicURL, "/"), strings.Trim(cfg.RunnerEndpointKey, "/ "))
-        serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, publicURL)
+	} else {
+		server := &http.Server{Addr: cfg.SelfHostedListenAddress, Handler: r}
+		publicURL := fmt.Sprintf("%s%s", strings.TrimRight(cfg.SelfHostedPublicURL, "/"), formatBasePath(basePath))
+		serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, publicURL)
 
 		cfg.Action.Noticef(serverInitMessage)
 		if slackNotifier.Enabled() {

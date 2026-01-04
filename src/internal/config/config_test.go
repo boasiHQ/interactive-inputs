@@ -21,118 +21,141 @@ func TestConfig_NewFromInputs(t *testing.T) {
 		expectedError  error
 	}{
 		{
-			name: "successful - created base config from input (default timeout)",
+			name: "successful - explicit ngrok mode",
 			envMap: map[string]string{
-				"INPUT_TITLE":           "What name should be given to the barista?",
-				"INPUT_INTERACTIVE":     "fields:\n  - label: name\n    properties:\n      display: name\n      type: text\n      description: Name of the user\n      maxLength: 20\n      required: false\n",
-				"INPUT_GITHUB-TOKEN":    "github-secret-token",
-				"INPUT_NGROK-AUTHTOKEN": "ngrok-secret-token",
+				"INPUT_PORTAL-HOST-MODE": "ngrok",
+				"INPUT_TITLE":            "Test Title",
+				"INPUT_INTERACTIVE":      "fields:\n  - label: name\n    properties:\n      type: text\n",
+				"INPUT_GITHUB-TOKEN":     "github-secret-token",
+				"INPUT_NGROK-AUTHTOKEN":  "ngrok-secret-token",
 			},
 			expectedConfig: config.Config{
-				Timeout: 300,
-				Title:   "What name should be given to the barista?",
+				Timeout:        300,
+				Title:          "Test Title",
+				PortalHostMode: config.PortalHostModeNgrok,
+				NgrokAuthtoken: "ngrok-secret-token",
+				GithubToken:    "github-secret-token",
 				Fields: &fields.Fields{
-					Fields: []fields.Field{
-						{
-							Label: "name",
-							Properties: fields.FieldProperties{
-								Display:     "name",
-								Type:        "text",
-								Description: "Name of the user",
-								MaxLength:   20,
-								Required:    false,
-							},
-						},
-					},
+					Fields: []fields.Field{{Label: "name", Properties: fields.FieldProperties{Type: "text"}}},
 				},
-				NotifierSlackEnabled:            false,
-				NotifierSlackToken:              "xoxb-secret-token",
-				NotifierSlackChannel:            "#notificatins",
-				NotifierDiscordEnabled:          false,
-				NotifierDiscordWebhook:          "secret-webhook",
-				GithubToken:                     "github-secret-token",
-				NgrokAuthtoken:                  "ngrok-secret-token",
-				PortalHostMode:                  config.PortalHostModeNgrok,
-				RunnerEndpointKey:               "runner",
+				NotifierSlackToken:     "xoxb-secret-token",
+				NotifierSlackChannel:   "#notifications",
+				NotifierDiscordWebhook: "secret-webhook",
+				RunnerEndpointKey:      "",
 			},
-			expectedOutput: "::debug::Ngrok authtoken detected. Using Ngrok mode.\n::add-mask::ngrok-secret-token\n::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: What name should be given to the barista?\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n::add-mask::ngrok-secret-token\n",
+			expectedOutput: "::debug::Ngrok mode active.\n::add-mask::ngrok-secret-token\n::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: Test Title\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n",
 			expectedError:  nil,
 		},
 		{
-			name: "successful - self-hosted mode (ngrok absent)",
+			name: "successful - explicit self-host alias",
 			envMap: map[string]string{
-				"INPUT_TITLE":                     "Self Hosted Test",
-				"INPUT_INTERACTIVE":               "fields:\n  - label: name\n    properties:\n      type: text\n",
-				"INPUT_GITHUB-TOKEN":              "github-secret-token",
-				"INPUT_SELFHOSTED-PUBLIC-URL":     "https://portal.example.com",
-				"INPUT_SELFHOSTED-LISTEN-ADDRESS": ":9090",
-			},
-			expectedConfig: config.Config{
-				Timeout: 300,
-				Title:   "Self Hosted Test",
-				Fields: &fields.Fields{
-					Fields: []fields.Field{
-						{
-							Label:      "name",
-							Properties: fields.FieldProperties{Type: "text"},
-						},
-					},
-				},
-				PortalHostMode:          config.PortalHostModeSelfHosted,
-				SelfHostedPublicURL:     "https://portal.example.com",
-				SelfHostedListenAddress: ":9090",
-				RunnerEndpointKey:       "runner",
-				GithubToken:             "github-secret-token",
-				NotifierSlackEnabled:    false,
-				NotifierSlackToken:      "xoxb-secret-token",
-				NotifierSlackChannel:    "#notificatins",
-				NotifierDiscordEnabled:  false,
-				NotifierDiscordWebhook:  "secret-webhook",
-			},
-			expectedOutput: "::debug::Self-hosted public URL detected. Using Self-Hosted mode.\n::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::Title input provided: Self Hosted Test\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n::add-mask::\n",
-			expectedError:  nil,
-		},
-		{
-			name: "successful - ngrok priority (both provided)",
-			envMap: map[string]string{
-				"INPUT_NGROK-AUTHTOKEN":       "ngrok-secret",
-				"INPUT_SELFHOSTED-PUBLIC-URL":  "https://ignored.com",
+				"INPUT_PORTAL-HOST-MODE":      "self-host",
 				"INPUT_GITHUB-TOKEN":          "github-secret-token",
+				"INPUT_SELFHOSTED-PUBLIC-URL": "https://portal.example.com",
 				"INPUT_INTERACTIVE":           "fields:\n  - label: name\n    properties:\n      type: text\n",
 			},
 			expectedConfig: config.Config{
-				Timeout: 300,
-				Title:   "",
+				Timeout:                 300,
+				PortalHostMode:          config.PortalHostModeSelfHosted,
+				SelfHostedPublicURL:     "https://portal.example.com",
+				SelfHostedListenAddress: ":8080",
+				GithubToken:             "github-secret-token",
 				Fields: &fields.Fields{
-					Fields: []fields.Field{
-						{
-							Label:      "name",
-							Properties: fields.FieldProperties{Type: "text"},
-						},
-					},
+					Fields: []fields.Field{{Label: "name", Properties: fields.FieldProperties{Type: "text"}}},
 				},
-				PortalHostMode:         config.PortalHostModeNgrok,
-				NgrokAuthtoken:         "ngrok-secret",
-				GithubToken:            "github-secret-token",
-				SelfHostedPublicURL:    "https://ignored.com",
-				RunnerEndpointKey:      "runner",
 				NotifierSlackToken:     "xoxb-secret-token",
-				NotifierSlackChannel:   "#notificatins",
+				NotifierSlackChannel:   "#notifications",
 				NotifierDiscordWebhook: "secret-webhook",
+				RunnerEndpointKey:      "runner",
 			},
-			expectedOutput: "::debug::Ngrok authtoken detected. Using Ngrok mode.\n::add-mask::ngrok-secret\n::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n::add-mask::ngrok-secret\n",
+			expectedOutput: "::debug::Self-hosted mode active.\n::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n",
 			expectedError:  nil,
 		},
 		{
-			name: "failed - missing both hosting modes",
+			name: "successful - explicit self-hosted mode",
 			envMap: map[string]string{
-				"INPUT_GITHUB-TOKEN": "github-secret-token",
-				"INPUT_INTERACTIVE":  "fields:\n  - label: name\n    properties:\n      type: text\n",
+				"INPUT_PORTAL-HOST-MODE":          "self-hosted",
+				"INPUT_GITHUB-TOKEN":              "github-secret-token",
+				"INPUT_SELFHOSTED-PUBLIC-URL":     "https://portal.example.com",
+				"INPUT_SELFHOSTED-LISTEN-ADDRESS": ":9090",
+				"INPUT_INTERACTIVE":               "fields:\n  - label: name\n    properties:\n      type: text\n",
 			},
-			expectedConfig: config.Config{},
-			// Removed the timeout debug message because the function returns early
-			expectedOutput: "::error::Configuration error: Either 'ngrok-authtoken' or 'selfhosted-public-url' must be provided.\n",
+			expectedConfig: config.Config{
+				Timeout:                 300,
+				PortalHostMode:          config.PortalHostModeSelfHosted,
+				SelfHostedPublicURL:     "https://portal.example.com",
+				SelfHostedListenAddress: ":9090",
+				GithubToken:             "github-secret-token",
+				Fields: &fields.Fields{
+					Fields: []fields.Field{{Label: "name", Properties: fields.FieldProperties{Type: "text"}}},
+				},
+				NotifierSlackToken:     "xoxb-secret-token",
+				NotifierSlackChannel:   "#notifications",
+				NotifierDiscordWebhook: "secret-webhook",
+				RunnerEndpointKey:      "runner",
+			},
+			expectedOutput: "::debug::Self-hosted mode active.\n::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n",
+			expectedError:  nil,
+		},
+		{
+			name: "successful - self-hosted mode with underscore endpoint key",
+			envMap: map[string]string{
+				"INPUT_PORTAL-HOST-MODE":      "self-hosted",
+				"INPUT_GITHUB-TOKEN":          "github-secret-token",
+				"INPUT_SELFHOSTED-PUBLIC-URL": "https://portal.example.com",
+				"INPUT_INTERACTIVE":           "fields:\n  - label: name\n    properties:\n      type: text\n",
+				"INPUT_RUNNER_ENDPOINT_KEY":   "custom",
+			},
+			expectedConfig: config.Config{
+				Timeout:                 300,
+				PortalHostMode:          config.PortalHostModeSelfHosted,
+				SelfHostedPublicURL:     "https://portal.example.com",
+				SelfHostedListenAddress: ":8080",
+				GithubToken:             "github-secret-token",
+				RunnerEndpointKey:       "custom",
+				Fields: &fields.Fields{
+					Fields: []fields.Field{{Label: "name", Properties: fields.FieldProperties{Type: "text"}}},
+				},
+				NotifierSlackToken:     "xoxb-secret-token",
+				NotifierSlackChannel:   "#notifications",
+				NotifierDiscordWebhook: "secret-webhook",
+			},
+			expectedOutput: "::debug::Self-hosted mode active.\n::debug::The timeout was not provided, will use the default timeout of 300 seconds\n::debug::runner-endpoint-key read from INPUT_RUNNER_ENDPOINT_KEY\n::add-mask::xoxb-secret-token\n::add-mask::secret-webhook\n::add-mask::github-secret-token\n",
+			expectedError:  nil,
+		},
+		{
+			name: "failed - portal host mode not provided",
+			envMap: map[string]string{
+				"INPUT_NGROK-AUTHTOKEN": "ngrok-secret-token",
+			},
+			expectedOutput: "::error::portal-host-mode is required and must be one of \"ngrok\", \"self-host\", \"self-hosted\".\n",
 			expectedError:  errors.ErrNoHostingModeProvided,
+		},
+		{
+			name: "failed - ngrok mode missing token",
+			envMap: map[string]string{
+				"INPUT_PORTAL-HOST-MODE": "ngrok",
+				"INPUT_NGROK-AUTHTOKEN":  "",
+			},
+			expectedOutput: "::error::Ngrok authtoken must be provided when portal-host-mode is set to 'ngrok'.\n",
+			expectedError:  errors.ErrNgrokAuthtokenNotProvided,
+		},
+		{
+			name: "failed - self-hosted mode missing public url",
+			envMap: map[string]string{
+				"INPUT_PORTAL-HOST-MODE":      "self-hosted",
+				"INPUT_SELFHOSTED-PUBLIC-URL": "",
+			},
+			expectedOutput: "::error::Self-hosted public URL must be provided when portal-host-mode is set to 'self-hosted'.\n",
+			expectedError:  errors.ErrSelfHostedPublicURLMissing,
+		},
+		{
+			name: "failed - invalid portal host mode",
+			envMap: map[string]string{
+				"INPUT_PORTAL-HOST-MODE": "invalid",
+			},
+			expectedOutput: "::error::Invalid portal-host-mode provided: invalid. Supported modes are \"ngrok\", \"self-host\", \"self-hosted\".\n",
+			expectedError:  errors.ErrInvalidPortalHostModeProvided,
 		},
 	}
 
@@ -144,6 +167,12 @@ func TestConfig_NewFromInputs(t *testing.T) {
 				return test.envMap[key]
 			}
 
+			for k, v := range test.envMap {
+				if k == "INPUT_RUNNER_ENDPOINT_KEY" {
+					t.Setenv(k, v)
+				}
+			}
+
 			action := githubactions.New(
 				githubactions.WithWriter(actionLog),
 				githubactions.WithGetenv(getenv),
@@ -152,12 +181,9 @@ func TestConfig_NewFromInputs(t *testing.T) {
 			cfg, inputsErr := config.NewFromInputs(action)
 
 			if test.expectedError != nil {
-				// For errors, check that the specific error is returned
 				assert.Equal(t, test.expectedError, inputsErr)
-				// For errors, check that the expected logs are present
 				assert.Equal(t, test.expectedOutput, actionLog.String())
 			} else {
-				// For success, ensure no error and check full config
 				assert.NoError(t, inputsErr)
 				assert.Equal(t, test.expectedOutput, actionLog.String())
 				cfg.Action = nil

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"os"
 	"strconv"
 	"strings"
 
@@ -84,6 +85,7 @@ const (
 	// Defaults to 300 seconds (5 minutes)
 	DefaultTimeout                 int    = 300
 	PortalHostModeSelfHosted       string = "self-hosted"
+	PortalHostModeSelfHost         string = "self-host"
 	PortalHostModeNgrok            string = "ngrok"
 	DefaultSelfHostedListenAddress string = ":8080"
 )
@@ -96,28 +98,45 @@ const (
 func NewFromInputs(action *githubactions.Action) (*Config, error) {
 
 	var err error
-	var portalHostMode string
+	portalHostMode := strings.TrimSpace(action.GetInput("portal-host-mode"))
+	supportedPortalHostModes := []string{PortalHostModeNgrok, PortalHostModeSelfHost, PortalHostModeSelfHosted}
+
+	if portalHostMode == "" {
+		action.Errorf("portal-host-mode is required and must be one of \"%s\".", strings.Join(supportedPortalHostModes, "\", \""))
+		return nil, errors.ErrNoHostingModeProvided
+	}
+
+	// Normalize the self-host alias to the canonical value
+	if portalHostMode == PortalHostModeSelfHost {
+		portalHostMode = PortalHostModeSelfHosted
+	}
 
 	ngrokAuthtokenInput := strings.TrimSpace(action.GetInput("ngrok-authtoken"))
 	selfHostedPublicURL := strings.TrimSpace(action.GetInput("selfhosted-public-url"))
 	selfHostedListenAddress := action.GetInput("selfhosted-listen-address")
 
-	// handle input for fetching ngrok authtoken
-	if ngrokAuthtokenInput != "" {
-		portalHostMode = PortalHostModeNgrok
-		action.Debugf("Ngrok authtoken detected. Using Ngrok mode.")
+	switch portalHostMode {
+	case PortalHostModeNgrok:
+		if ngrokAuthtokenInput == "" {
+			action.Errorf("Ngrok authtoken must be provided when portal-host-mode is set to 'ngrok'.")
+			return nil, errors.ErrNgrokAuthtokenNotProvided
+		}
+		action.Debugf("Ngrok mode active.")
 		action.AddMask(ngrokAuthtokenInput)
-	} else if selfHostedPublicURL != "" {
-		portalHostMode = PortalHostModeSelfHosted
-		action.Debugf("Self-hosted public URL detected. Using Self-Hosted mode.")
 
+	case PortalHostModeSelfHosted:
+		if selfHostedPublicURL == "" {
+			action.Errorf("Self-hosted public URL must be provided when portal-host-mode is set to 'self-hosted'.")
+			return nil, errors.ErrSelfHostedPublicURLMissing
+		}
+		action.Debugf("Self-hosted mode active.")
 		if strings.TrimSpace(selfHostedListenAddress) == "" {
 			selfHostedListenAddress = DefaultSelfHostedListenAddress
 		}
-	} else {
-		// Raise error if neither is provided
-		action.Errorf("Configuration error: Either 'ngrok-authtoken' or 'selfhosted-public-url' must be provided.")
-		return nil, errors.ErrNoHostingModeProvided
+
+	default:
+		action.Errorf("Invalid portal-host-mode provided: %s. Supported modes are \"%s\".", portalHostMode, strings.Join(supportedPortalHostModes, "\", \""))
+		return nil, errors.ErrInvalidPortalHostModeProvided
 	}
 
 	// handle input for fetching github token
@@ -157,17 +176,28 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 
 	runnerEndpointKey := strings.Trim(action.GetInput("runner-endpoint-key"), "/ ")
 	if runnerEndpointKey == "" {
-		// Fallback: derive from GitHub Run ID if available, else use "runner"
+		if alt := strings.Trim(os.Getenv("INPUT_RUNNER_ENDPOINT_KEY"), "/ "); alt != "" {
+			action.Debugf("runner-endpoint-key read from INPUT_RUNNER_ENDPOINT_KEY")
+			runnerEndpointKey = alt
+		}
+	}
+
+	if portalHostMode == PortalHostModeNgrok {
+		// Ngrok works best with a root path; we keep the key empty
+		runnerEndpointKey = ""
+	} else if runnerEndpointKey == "" {
+		// SELF-HOSTED: We MUST have a key for security/namespacing
 		if ctx, err := action.Context(); err == nil && ctx.RunID != 0 {
 			runnerEndpointKey = strconv.FormatInt(ctx.RunID, 10)
 		} else {
+			// Ultimate fallback for local testing
 			runnerEndpointKey = "runner"
 		}
 	}
 
 	// handle input for fetching slack notifier
 	var notifierSlackToken string = "xoxb-secret-token"
-	var notifierSlackChannel string = "#notificatins"
+	var notifierSlackChannel string = "#notifications"
 	var notifierSlackBotName string
 	var notifierSlackThreadTs string
 
@@ -208,7 +238,6 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 	action.AddMask(notifierSlackToken)
 	action.AddMask(notifierDiscordWebhook)
 	action.AddMask(githubTokenInput)
-	action.AddMask(ngrokAuthtokenInput)
 
 	c := Config{
 		Title:                   titleInput,

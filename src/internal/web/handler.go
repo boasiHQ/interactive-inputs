@@ -2,15 +2,15 @@ package webui
 
 import (
 	"fmt"
-	"html/template"
-	"io/fs"
-	"net/http"
-	"strings"
-	"os"
 	"github.com/boasihq/interactive-inputs/internal/config"
 	"github.com/boasihq/interactive-inputs/internal/toolbox"
 	githubactions "github.com/sethvargo/go-githubactions"
 	"go.uber.org/zap"
+	"html/template"
+	"io/fs"
+	"net/http"
+	"os"
+	"strings"
 )
 
 // NewWebAppHandlerRequest is the request needed to create an ui handler
@@ -61,50 +61,52 @@ func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Calculate the base path once for the template
-    basePath := strings.Trim(h.config.RunnerEndpointKey, "/ ")
-    if basePath == "" {
-        basePath = "runner"
-    }
-    response.BasePath = "/" + basePath
+	basePath := strings.Trim(h.config.RunnerEndpointKey, "/ ")
+	if basePath == "" && h.config.PortalHostMode != config.PortalHostModeNgrok {
+		basePath = "runner"
+	}
+	if basePath != "" {
+		response.BasePath = "/" + basePath
+	}
 
 	// Build balloon suggestion data from field properties and environment
-    balloonData := make(map[string][]string)
-    preOutput := make(map[string]struct{ Title, Value string })
-    if h.config.Fields != nil {
-        for _, f := range h.config.Fields.Fields {
-            var suggestions []string
+	balloonData := make(map[string][]string)
+	preOutput := make(map[string]struct{ Title, Value string })
+	if h.config.Fields != nil {
+		for _, f := range h.config.Fields.Fields {
+			var suggestions []string
 
-            // Static suggestions
-            if len(f.Properties.BalloonValues) > 0 {
-                suggestions = append(suggestions, f.Properties.BalloonValues...)
-            }
+			// Static suggestions
+			if len(f.Properties.BalloonValues) > 0 {
+				suggestions = append(suggestions, f.Properties.BalloonValues...)
+			}
 
-            // Env-derived suggestions
-            if len(f.Properties.BalloonValueEnvKeys) > 0 {
-                for _, key := range f.Properties.BalloonValueEnvKeys {
-                    val := strings.TrimSpace(os.Getenv(key))
-                    if val == "" {
-                        continue
-                    }
-                    suggestions = append(suggestions, val)
-                }
-            }
+			// Env-derived suggestions
+			if len(f.Properties.BalloonValueEnvKeys) > 0 {
+				for _, key := range f.Properties.BalloonValueEnvKeys {
+					val := strings.TrimSpace(os.Getenv(key))
+					if val == "" {
+						continue
+					}
+					suggestions = append(suggestions, val)
+				}
+			}
 
-            if len(suggestions) > 0 {
-                balloonData[f.Label] = suggestions
-            }
+			if len(suggestions) > 0 {
+				balloonData[f.Label] = suggestions
+			}
 
-            // PreOutput from a single env var
-            if k := strings.TrimSpace(f.Properties.OutputFromEnvKey); k != "" {
-                if v := strings.TrimSpace(os.Getenv(k)); v != "" {
-                    t := strings.TrimSpace(f.Properties.OutputTitle)
-                    preOutput[f.Label] = struct{ Title, Value string }{Title: t, Value: v}
-                }
-            }
-        }
-    }
-    response.BalloonData = balloonData
-    response.PreOutput = preOutput
+			// PreOutput from a single env var
+			if k := strings.TrimSpace(f.Properties.OutputFromEnvKey); k != "" {
+				if v := strings.TrimSpace(os.Getenv(k)); v != "" {
+					t := strings.TrimSpace(f.Properties.OutputTitle)
+					preOutput[f.Label] = struct{ Title, Value string }{Title: t, Value: v}
+				}
+			}
+		}
+	}
+	response.BalloonData = balloonData
+	response.PreOutput = preOutput
 
 	// list of template files to parse, must be in order of inheritence
 	templateFilesToParse := []string{
