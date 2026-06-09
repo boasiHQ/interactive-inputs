@@ -2,7 +2,7 @@
 
 Interactive Inputs now enables GitHub Actions to support dynamic runtime user inputs for workflows and composite actions. This action allows you to leverage various [input field types](#input-fields-types), including but not limited to [text](#text-input---text), [multiple choice](#multi-select-input---multiselect), and even [uploading files](#multifile-input---multifile), creating dynamic workflows that adapt to your CI/CD needs.
 
-Use the reference **`boasihq/interactive-inputs@v2`** in your workflows to ensure you are using the latest features of this action.
+Use the reference **`boasihq/interactive-inputs@v3`** in your workflows to ensure you are using the latest features of this action.
 
 ## Motivation and Context
 
@@ -58,7 +58,7 @@ Here are some examples of the Interactive Input action... in action 👀😔:
 To get started, there are three main steps:
 
 1. Sign up to NGROK and get your auth token if you do not already have one by [**clicking here**](https://dashboard.ngrok.com/signup)
-2. Add this action `boasihq/interactive-inputs@v2` to your workflow file. See below the [various example implemenations](#example) for inspiration.
+2. Add this action `boasihq/interactive-inputs@v3` to your workflow file. See below the [various example implemenations](#example) for inspiration.
 3. Use the predictable output variables from your interactive input portal to create dynamic workflows.
 
 > Note, this action requires an ARM64 or AMD64 (x86) runner to run i.e. `ubuntu-latest`
@@ -150,7 +150,7 @@ jobs:
     steps:
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@v2
+        uses: boasihq/interactive-inputs@v3
         with:
           ngrok-authtoken: ${{ secrets.NGROK_AUTHTOKEN }}
           notifier-slack-enabled: "false"
@@ -279,7 +279,7 @@ jobs:
     steps:
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasiHQ/interactive-inputs@v2
+        uses: boasiHQ/interactive-inputs@v3
         with:
           timeout: 300
           title: 'We need you to select your desired flow(s) to execute'
@@ -385,7 +385,7 @@ jobs:
 
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasiHQ/interactive-inputs@v2
+        uses: boasiHQ/interactive-inputs@v3
         with:
           timeout: 300
           title: 'We need you to select your desired flow(s) to execute'
@@ -450,7 +450,7 @@ The input fields shape the user interface of the interactive input. The input fi
       ...
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@v2
+        uses: boasihq/interactive-inputs@v3
         with:
           ...
           interactive: |
