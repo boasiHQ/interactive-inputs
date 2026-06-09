@@ -31,6 +31,8 @@ We will remove the third-party `action-docs` dependency and replace it with a sm
 
 We will keep checked-in Linux binaries under `dist/` and regenerate them with the pinned Go toolchain whenever source or compiler inputs change.
 
+We will update the manual interactive-inputs validation workflow to check out the workflow ref and invoke the local action with `uses: ./`, so branch testing validates the candidate action code instead of the last published release.
+
 ## Consequences
 
 The action now targets the current safe GitHub Actions JavaScript runtime and the repository can be bootstrapped with one `asdf install` flow.

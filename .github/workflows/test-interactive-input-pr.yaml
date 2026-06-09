@@ -10,9 +10,12 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@v2
+        uses: ./
         with:
           ngrok-authtoken: ${{ secrets.NGROK_AUTHTOKEN }}
           notifier-slack-enabled: 'false'
