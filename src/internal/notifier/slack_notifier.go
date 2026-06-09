@@ -35,7 +35,8 @@ type NewSlackNotifierRequest struct {
 	ThreadTs string
 }
 
-// NewSlackNotifier returns a new instance of a Slack Notifier
+// NewSlackNotifier creates a Slack notifier with sensible defaults for bot
+// name and verification endpoint.
 func NewSlackNotifier(r *NewSlackNotifierRequest) Notifier {
 
 	var botName string = "Interactive Inputs"
@@ -85,7 +86,8 @@ type SlackNotifier struct {
 	threadTs string
 }
 
-// Notify sends a notification to the Slack channel
+// Notify posts a formatted "user input required" message to Slack and returns
+// the message timestamp for optional threaded follow-up.
 func (n *SlackNotifier) Notify(title, message string) (string, error) {
 
 	var notificationResponse SlackChatPostMessageResponse
@@ -205,7 +207,7 @@ func (n *SlackNotifier) Verify() error {
 	return nil
 }
 
-// Enabled returns whether the notifier is enabled or not
+// Enabled reports whether Slack notifications should be sent.
 func (n *SlackNotifier) Enabled() bool {
 	return n.enabled
 }

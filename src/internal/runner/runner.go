@@ -19,8 +19,10 @@ import (
 	nconfig "golang.ngrok.com/ngrok/config"
 )
 
+// InvokeAction starts the interactive portal, exposes it locally or through
+// ngrok, sends optional notifier messages, and waits until the portal is
+// submitted, cancelled, or timed out.
 func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config.Config, embeddedContent fs.FS, embeddedContentFilePathPrefix string) error {
-
 	defer ctxCancel()
 
 	var githubActionWorkingDir string = os.Getenv("GITHUB_WORKSPACE")
@@ -163,7 +165,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 
 		serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, ln.URL())
 
-		cfg.Action.Noticef(serverInitMessage)
+		cfg.Action.Noticef("%s", serverInitMessage)
 
 		if slackNotifier.Enabled() {
 			_, err := slackNotifier.Notify(cfg.Title, fmt.Sprintf(notifierSlackEnterInputMessageTmpl, ln.URL()))
@@ -186,7 +188,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 			if err := http.Serve(ln, r); err != nil {
 				serverErrorMessage := fmt.Sprintf(universalNotifierFailedToSelfHost, err)
 
-				cfg.Action.Errorf(serverErrorMessage)
+				cfg.Action.Errorf("%s", serverErrorMessage)
 				if slackNotifier.Enabled() {
 					_, err := slackNotifier.Notify(cfg.Title, serverErrorMessage)
 					if err != nil {
@@ -212,7 +214,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 		completeLocalUrl := fmt.Sprintf("http://localhost%s", localPort)
 		serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, completeLocalUrl)
 
-		cfg.Action.Noticef(serverInitMessage)
+		cfg.Action.Noticef("%s", serverInitMessage)
 		if slackNotifier.Enabled() {
 			_, err := slackNotifier.Notify(cfg.Title, fmt.Sprintf(notifierSlackEnterInputMessageTmpl, completeLocalUrl))
 			if err != nil {
@@ -234,7 +236,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 			if err := server.ListenAndServe(); err != nil {
 				serverErrorMessage := fmt.Sprintf(universalNotifierFailedToSelfHost, err)
 
-				cfg.Action.Errorf(serverErrorMessage)
+				cfg.Action.Errorf("%s", serverErrorMessage)
 				if slackNotifier.Enabled() {
 					_, err := slackNotifier.Notify(cfg.Title, serverErrorMessage)
 					if err != nil {
@@ -267,8 +269,8 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 
 }
 
-// handlePrettierTimeoutErrorMessage is a helper function that prints a nicer error message
-// when the context deadline is exceeded. Otherwise, it returns the original error.
+// handlePrettierTimeoutErrorMessage turns a context deadline into the
+// user-facing inactivity timeout message used by the action.
 func handlePrettierTimeoutErrorMessage(err error, timeout int) error {
 	// Print nicer timeout message
 	if err != nil && err.Error() == "context deadline exceeded" {

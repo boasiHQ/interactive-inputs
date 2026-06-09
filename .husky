@@ -1,3 +1,0 @@
-yarn package
-yarn readme --update
-git add */{dist,README.md}

@@ -18,8 +18,9 @@ import (
 //go:embed internal/web/ui/static/* internal/web/ui/html/*
 var content embed.FS
 
+// run prepares the action configuration, applies the portal timeout, and
+// delegates the rest of the workflow to the runner package.
 func run() error {
-
 	var (
 		ctx    context.Context       = context.Background()
 		action *githubactions.Action = githubactions.New()
@@ -46,6 +47,7 @@ func run() error {
 	return runner.InvokeAction(ctx, ctxCancel, cfg, &content, "internal/")
 }
 
+// main is the action process entrypoint.
 func main() {
 	err := run()
 	if err != nil {

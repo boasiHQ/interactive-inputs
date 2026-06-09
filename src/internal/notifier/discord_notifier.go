@@ -34,7 +34,8 @@ type NewDiscordNotifierRequest struct {
 	ThreadId string
 }
 
-// NewDiscordNotifier returns a new instance of a discord Notifier
+// NewDiscordNotifier creates a Discord notifier with sensible defaults for
+// username and verification endpoint.
 func NewDiscordNotifier(r *NewDiscordNotifierRequest) Notifier {
 
 	var username string = "Interactive Inputs"
@@ -82,6 +83,8 @@ type DiscordNotifier struct {
 	threadId string
 }
 
+// Notify posts a formatted "user input required" message to the configured
+// Discord webhook.
 func (n *DiscordNotifier) Notify(title, message string) (string, error) {
 
 	var discordCompleteWebhookUrl string = n.webhookUrl
@@ -182,7 +185,7 @@ func (n *DiscordNotifier) Verify() error {
 	return nil
 }
 
-// Enabled returns whether the notifier is enabled or not
+// Enabled reports whether Discord notifications should be sent.
 func (n *DiscordNotifier) Enabled() bool {
 	return n.enabled
 }

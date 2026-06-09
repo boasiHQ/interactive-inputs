@@ -44,7 +44,7 @@ var (
 	// ErrFailedToSendMessageWithNotifier is returned when the notifier is unable to send a message
 	ErrFailedToSendMessageWithNotifier = errors.New("FailedToSendMessageWithNotifier")
 
-	//ErrNgrokAuthtokenNotProvided is returned when the ngrok authtoken is not provided
+	// ErrNgrokAuthtokenNotProvided is returned when the ngrok auth token is not provided
 	ErrNgrokAuthtokenNotProvided = errors.New("NgrokAuthtokenNotProvided")
 
 	// ErrGithubTokenNotProvided is returned when the github token is not provided

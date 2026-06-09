@@ -18,7 +18,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// actionPkg manages business logic around action request
+// actionPkg captures the GitHub Actions methods used by the portal handler.
 type actionPkg interface {
 	Context() (*githubactions.GitHubContext, error)
 	Infof(msg string, args ...any)
@@ -29,7 +29,7 @@ type actionPkg interface {
 	SetOutput(k string, v string)
 }
 
-// Handler manages portal requests
+// Handler manages portal submission, cancellation, upload, and reset requests.
 type Handler struct {
 
 	// isRunningLocal is true when running locally
@@ -51,7 +51,8 @@ type Handler struct {
 	inputFieldLabelToCacheDirMapping map[string]string
 }
 
-// NewHandler returns portal handler
+// NewHandler creates a portal handler with action context, embedded UI assets,
+// GitHub credentials, and upload cache mappings.
 func NewHandler(actionPkg actionPkg, isRunningLocal bool, embeddedContent fs.FS, embeddedContentFilePathPrefix, githubToken string, inputFieldLabelToCacheDirMapping map[string]string) *Handler {
 	return &Handler{
 		isRunningLocal:                   isRunningLocal,
@@ -63,7 +64,7 @@ func NewHandler(actionPkg actionPkg, isRunningLocal bool, embeddedContent fs.FS,
 	}
 }
 
-// CancelPortal returns response for request to cancel the portal
+// CancelPortal renders the cancellation response and terminates the action run.
 func (h *Handler) CancelPortal(w http.ResponseWriter, r *http.Request) {
 
 	additionalContext := map[string]string{
@@ -122,7 +123,8 @@ func (h *Handler) CancelPortal(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// SubmitPortal returns response for request to submit the portal
+// SubmitPortal records submitted field values as action outputs and renders the
+// success response.
 func (h *Handler) SubmitPortal(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	additionalContext := map[string]string{
@@ -209,8 +211,8 @@ func (h *Handler) SubmitPortal(w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
-// UploadToPortal returns response for request to upload file(s) to portal
-// for later use
+// UploadToPortal stores uploaded file or multifile input contents in the
+// cache directory mapped to the field label.
 func (h *Handler) UploadToPortal(w http.ResponseWriter, r *http.Request) {
 
 	const indexKeySplitter string = "__index__"
@@ -361,8 +363,7 @@ Cache clean overview:
 
 }
 
-// ResetUpload returns response for request to reset upload,
-// which removes all files from the cache directory for the given input field name.
+// ResetUpload removes cached upload files for the requested input field.
 func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
 	var inputFieldLabel string
 
@@ -407,7 +408,8 @@ func (h *Handler) ResetUpload(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// cleanUpCacheDir removes all files from the cache directory for the given input field name
+// cleanUpCacheDir removes all cached upload files for an input field and
+// returns deletion counts plus per-file success/failure details.
 func (h *Handler) cleanUpCacheDir(inputFieldLabel string, enableDebugOutput bool) (string, int, int, []string, []string, error) {
 
 	var (
@@ -503,7 +505,8 @@ func (h *Handler) getInputFieldCacheDir(inputFieldName string) string {
 	return h.inputFieldLabelToCacheDirMapping[inputFieldName]
 }
 
-// getBaseResponseHandler returns response handler configured with respective error map
+// getBaseResponseHandler returns a response handler configured with the portal
+// error manifest.
 func getBaseResponseHandler() *reply.Replier {
 	return reply.NewReplier(append([]reply.ErrorManifest{}, portalErrorMap))
 }

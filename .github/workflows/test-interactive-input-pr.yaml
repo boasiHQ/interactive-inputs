@@ -1,4 +1,4 @@
-name: "Test Interactive Inputs [Pull Request]"
+name: 'Test Interactive Inputs [Pull Request]'
 
 on:
   workflow_dispatch:
@@ -10,18 +10,21 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+
       - name: Example Interactive Inputs Step
         id: interactive-inputs
-        uses: boasihq/interactive-inputs@v2
+        uses: ./
         with:
           ngrok-authtoken: ${{ secrets.NGROK_AUTHTOKEN }}
-          notifier-slack-enabled: "false"
-          notifier-slack-channel: "#notificaitons"
+          notifier-slack-enabled: 'false'
+          notifier-slack-channel: '#notifications'
           notifier-slack-token: ${{ secrets.SLACK_TOKEN }}
-          notifier-discord-enabled: "false"
+          notifier-discord-enabled: 'false'
           notifier-discord-webhook: ${{ secrets.DISCORD_WEBHOOK }}
           timeout: 160
-          title: "A batch of 10 feature flags have been added to be deployed. Would you like to proceed?"
+          title: 'A batch of 10 feature flags have been added to be deployed. Would you like to proceed?'
           interactive: |
             fields:
               - label: continue-roll-out

@@ -57,7 +57,7 @@ env \
       type: text
       description: City of the user
       maxLength: 20
-      required: false 
+      required: false
   - label: car
     properties:
       display: Favourite Car
@@ -80,7 +80,7 @@ env \
       display: What are your favourite colours
       type: multiselect
       disableAutoCopySelection: true
-      choices: 
+      choices:
         ["Red", "Green", "Blue", "Orange", "Purple", "Pink", "Yellow"]
       required: true
   - label: verify
@@ -166,7 +166,7 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
       type: text
       description: City of the user
       maxLength: 20
-      required: false 
+      required: false
   - label: car
     properties:
       display: Favourite Car
@@ -189,7 +189,7 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
       display: What are your favourite colours
       type: multiselect
       disableAutoCopySelection: true
-      choices: 
+      choices:
         ["Red", "Green", "Blue", "Orange", "Purple", "Pink", "Yellow"]
       required: true
   - label: verify
@@ -235,13 +235,12 @@ go test -v  ./...
 
 There are two methods of building the binary. It can be done with native go build command.
 
-
 ```sh
 # For Linux AMD64
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags=\"-w -s\" -o dist/action-amd64 main.go
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 asdf exec go build -trimpath -ldflags="-s -w" -o dist/action-amd64 main.go
 
 # For Linux ARM64
-CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -installsuffix cgo -ldflags=\"-w -s\" -o dist/action-arm64 main.go
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 asdf exec go build -trimpath -ldflags="-s -w" -o dist/action-arm64 main.go
 ```
 
 **or**

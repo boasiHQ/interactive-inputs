@@ -11,7 +11,7 @@ import (
 
 var (
 
-	// ValidFieldTypes  is a list of valid field types supported by the action.
+	// ValidFieldTypes is the list of field types supported by the portal.
 	ValidFieldTypes = []string{
 		"text",
 		"textarea",
@@ -24,48 +24,70 @@ var (
 	}
 )
 
-// Fields is a struct that contains a list of Field structs, which represent the fields in a form to display to users.
-// The Fields struct is typically used to define the structure and properties of the fields that will be displayed to users.
-// Each Field in the Fields slice has a Label and a list of FieldProperties that define the display, type, and other characteristics of the field.
+// Fields is the top-level YAML shape used by the interactive input definition.
 type Fields struct {
+	// Fields is the list of input controls that will be displayed to users.
 	Fields []Field `yaml:"fields"`
 }
 
-// Field represents a field in the Fields struct. It contains a label and a list of field properties.
+// Field represents one input control that will be rendered in the portal.
 type Field struct {
-	Label      string          `yaml:"label"`
+	// Label is the input identifier used for form names, output keys, and upload cache mappings.
+	Label string `yaml:"label"`
+
+	// Properties define the display, validation, and behaviour settings for the field.
 	Properties FieldProperties `yaml:"properties"`
 }
 
-// FieldProperties represents the properties of a field in the Fields struct.
-// Display is the label to show the user for the field.
-// Type is the type of the field, such as "text" or "options".
-// Description is a description of the field to show the user.
-// Choices is a list of options to display for the field if the Type is "options".
-// Required indicates whether the field must be filled out.
-// MaxLength is the maximum length of the field's value.
-// DisableAutoCopySelection is whether the field should stop automatically coping the selected option to the clipboard (valid fields: select, multiselect).
+// FieldProperties controls how a field is displayed, validated, and processed
+// by the portal UI.
 type FieldProperties struct {
-	Display                  string   `yaml:"display"`
-	Type                     string   `yaml:"type"`
-	Description              string   `yaml:"description"`
-	Choices                  []string `yaml:"choices"`
-	Required                 bool     `yaml:"required"`
-	MaxLength                int      `yaml:"maxLength"`
-	Placeholder              string   `yaml:"placeholder"`
-	NumberMin                int      `yaml:"minNumber"`
-	NumberMax                int      `yaml:"maxNumber"`
-	DefaultValue             string   `yaml:"defaultValue"`
-	ReadOnly                 bool     `yaml:"readOnly"`
-	DisableAutoCopySelection bool     `yaml:"disableAutoCopySelection"`
-	AcceptedFileTypes        []string `yaml:"acceptedFileTypes"`
+	// Display is the label to show the user for the field.
+	Display string `yaml:"display"`
+
+	// Type is the type of the field, such as "text" or "select".
+	Type string `yaml:"type"`
+
+	// Description is the help text to show the user for the field.
+	Description string `yaml:"description"`
+
+	// Choices is the list of options to display when Type is "select" or "multiselect".
+	Choices []string `yaml:"choices"`
+
+	// Required indicates whether the field must be filled out.
+	Required bool `yaml:"required"`
+
+	// MaxLength is the maximum length of the field's value.
+	MaxLength int `yaml:"maxLength"`
+
+	// Placeholder is the hint text displayed before the user enters a value.
+	Placeholder string `yaml:"placeholder"`
+
+	// NumberMin is the minimum allowed value for number fields.
+	NumberMin int `yaml:"minNumber"`
+
+	// NumberMax is the maximum allowed value for number fields.
+	NumberMax int `yaml:"maxNumber"`
+
+	// DefaultValue is the initial value displayed in the field.
+	DefaultValue string `yaml:"defaultValue"`
+
+	// ReadOnly indicates whether the field should display its value without allowing edits.
+	ReadOnly bool `yaml:"readOnly"`
+
+	// DisableAutoCopySelection stops automatically copying the selected option to the clipboard.
+	DisableAutoCopySelection bool `yaml:"disableAutoCopySelection"`
+
+	// AcceptedFileTypes limits file and multifile uploads to the listed MIME types or file extensions.
+	AcceptedFileTypes []string `yaml:"acceptedFileTypes"`
 }
 
-// MarshalStringIntoValidFieldsStruct takes a YAML-formatted string representation of a Fields
-// struct and unmarshals it into a valid Fields struct. If the unmarshaling is successful and
-// the Fields struct contains at least one Field, the function returns a pointer to the Fields
-// struct. If the unmarshaling fails or the Fields struct contains no Fields, the function
-// returns an error.
+// MarshalStringIntoValidFieldsStruct parses the YAML `interactive` input into
+// a normalised Fields value.
+//
+// It validates that at least one field exists, each field type is supported,
+// labels can be converted to kebab case, and labels remain unique after
+// normalisation.
 func MarshalStringIntoValidFieldsStruct(fieldsString string, action *githubactions.Action) (*Fields, error) {
 	var fields Fields
 	var detectedFieldLabels []string = make([]string, 0)
