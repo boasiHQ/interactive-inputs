@@ -6,16 +6,17 @@
   "author": "Leon Silcott <leon@boasi.io>",
   "repository": "https://github.com/boasiHQ/interactive-inputs.git",
   "license": "MIT",
+  "packageManager": "yarn@1.22.22",
   "scripts": {
-    "readme": "action-docs -un -t 1",
-    "package": "echo 'building binaries...' && cd src && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags=\"-w -s\" -o ../dist/action-amd64 main.go && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -installsuffix cgo -ldflags=\"-w -s\" -o ../dist/action-arm64 main.go",
-    "fmt": "cd src && go fmt  ./...",
-    "test": "cd src && go test -v  ./...",
-    "test:coverage": "cd src && go test -coverprofile=cover.out ./... && go tool cover -html=cover.out"
+    "readme": "node scripts/update-readme.js",
+    "package": "echo 'building binaries...' && cd src && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 asdf exec go build -trimpath -ldflags=\"-s -w\" -o ../dist/action-amd64 main.go && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 asdf exec go build -trimpath -ldflags=\"-s -w\" -o ../dist/action-arm64 main.go",
+    "prepare": "husky",
+    "fmt": "cd src && asdf exec go fmt ./...",
+    "test": "cd src && asdf exec go test -v ./...",
+    "test:coverage": "cd src && asdf exec go test -coverprofile=cover.out ./... && asdf exec go tool cover -html=cover.out"
   },
   "devDependencies": {
-    "action-docs": "^2.4.0",
-    "husky": "^9.0.11",
-    "prettier": "^3.2.5"
+    "husky": "^9.1.7",
+    "prettier": "^3.8.3"
   }
 }

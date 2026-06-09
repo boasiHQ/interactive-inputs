@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// NewWebAppHandlerRequest is the request needed to create an ui handler
+// NewWebAppHandlerRequest is the request needed to create a UI handler.
 type NewWebAppHandlerRequest struct {
 	EmbeddedContent fs.FS
 	// EmbeddedContentFilePathPrefix the prefix used to access the embedded files
@@ -21,7 +21,7 @@ type NewWebAppHandlerRequest struct {
 	Config *config.Config
 }
 
-// NewWebAppHandler creates a new instance of an ui handler
+// NewWebAppHandler creates a handler that renders the embedded portal UI.
 func NewWebAppHandler(r *NewWebAppHandlerRequest) *Handler {
 	return &Handler{
 		embeddedFileSystem:            r.EmbeddedContent,
@@ -31,7 +31,7 @@ func NewWebAppHandler(r *NewWebAppHandlerRequest) *Handler {
 	}
 }
 
-// Handler manages request for webapp
+// Handler serves the embedded web application used by the input portal.
 type Handler struct {
 	embeddedFileSystem            fs.FS
 	embeddedContentFilePathPrefix string
@@ -39,6 +39,7 @@ type Handler struct {
 	config                        *config.Config
 }
 
+// Home renders the portal landing page for the root route.
 func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 
 	var response *CreateInteractiveInputsPortalRequest

@@ -1,0 +1,5 @@
+node_modules
+dist
+README.md
+src/internal/web/ui/static/fonts
+src/internal/web/ui/static/libs

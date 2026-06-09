@@ -1,5 +1,6 @@
 package notifier
 
+// Notifier sends and verifies optional portal notifications.
 type Notifier interface {
 
 	// Notify sends a notification to respective integration
@@ -7,7 +8,7 @@ type Notifier interface {
 	// if the integration supports it.
 	Notify(title, message string) (string, error)
 
-	// Verifys the connection to the integration
+	// Verify checks the connection to the integration.
 	Verify() error
 
 	// Enabled returns whether the notifier is enabled or not

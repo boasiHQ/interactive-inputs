@@ -1,13 +1,15 @@
-name: "Interactive Inputs"
-description: "Introduce dynamic inputs to your workflows and use them in your actions"
-author: "Leon Silcott <leon@boasi.io>"
+name: 'Interactive Inputs'
+description: 'Introduce dynamic inputs to your workflows and use them in your actions'
+author: 'Leon Silcott <leon@boasi.io>'
+color: 'orange'
+
 inputs:
   title:
-    description: "The title of the interactive inputs form"
+    description: 'The title of the interactive inputs form'
     required: false
 
   interactive:
-    description: "The representation (in yaml) of fields to be displayed"
+    description: 'The representation (in YAML) of fields to be displayed'
     required: true
     default: |
       fields:
@@ -33,60 +35,60 @@ inputs:
             required: true
 
   timeout:
-    description: "The timeout in seconds for the interactive inputs form"
+    description: 'The timeout in seconds for the interactive inputs form'
     required: false
-    default: "300"
+    default: '300'
 
   ngrok-authtoken:
-    description: "The authtoken for ngrok used to expose the interactive inputs form"
+    description: 'The auth token for ngrok used to expose the interactive inputs form'
     required: true
 
   github-token:
-    description: "The token used to authenticate with GitHub API"
+    description: 'The token used to authenticate with GitHub API'
     required: true
     default: ${{ github.token }}
 
   notifier-slack-enabled:
-    description: "Whether to send a notification to Slack about the status of the interative inputs form"
-    default: "false"
-    required: true
+    description: 'Whether to send a notification to Slack about the status of the interactive inputs form'
+    default: 'false'
+    required: false
 
   notifier-slack-thread-ts:
-    description: "The timestamp of the message to reply to in the thread"
+    description: 'The timestamp of the message to reply to in the thread'
     required: false
 
   notifier-slack-token:
-    description: "The token used to authenticate with Slack API"
-    default: "xoxb-secret-token"
-    required: true
+    description: 'The token used to authenticate with Slack API'
+    default: 'xoxb-secret-token'
+    required: false
 
   notifier-slack-channel:
-    description: "The channel to send the notification to"
-    required: true
-    default: "#notificaitons"
+    description: 'The channel to send the notification to'
+    required: false
+    default: '#notifications'
 
   notifier-slack-bot:
-    description: "The name of the bot to send the notification as"
+    description: 'The name of the bot to send the notification as'
     required: false
 
   notifier-discord-enabled:
-    description: "Whether to send a notification to Discord about the status of the interative inputs form"
-    default: "false"
-    required: true
+    description: 'Whether to send a notification to Discord about the status of the interactive inputs form'
+    default: 'false'
+    required: false
 
   notifier-discord-thread-id:
-    description: "The ID of the Discord thread the message should be sent to"
+    description: 'The ID of the Discord thread the message should be sent to'
     required: false
 
   notifier-discord-webhook:
-    description: "The webhook URL used to send the notification(s) to Discord"
-    required: true
-    default: "secret-webhook"
+    description: 'The webhook URL used to send the notification(s) to Discord'
+    required: false
+    default: 'secret-webhook'
 
   notifier-discord-username:
-    description: "The username to send the notification(s) as"
+    description: 'The username to send the notification(s) as'
     required: false
 
 runs:
-  using: "node20"
-  main: "invoke-binary.js"
+  using: 'node24'
+  main: 'invoke-binary.js'

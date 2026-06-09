@@ -9,8 +9,9 @@ import (
 	githubactions "github.com/sethvargo/go-githubactions"
 )
 
+// Config stores the parsed GitHub Action inputs and runtime dependencies used
+// to create, expose, and complete an interactive input portal.
 type Config struct {
-
 	// Title is the header that will be displayed at the top of the generated form
 	Title string
 
@@ -58,7 +59,7 @@ type Config struct {
 	// GithubToken is the token that will be used to allow action to leverage the GitHub API
 	GithubToken string
 
-	// NgrokAuthtoken is the authtoken that will be used to make Ngrok tunnels to host the
+	// NgrokAuthtoken is the auth token that will be used to make Ngrok tunnels to host the
 	// interactive inputs portals
 	NgrokAuthtoken string
 
@@ -73,16 +74,17 @@ const (
 	DefaultTimeout int = 300
 )
 
-// NewFromInputs creates a new Config instance from the provided GitHub Actions inputs.
-// It utilises the inputs from the GitHub Actions context, and returns a new Config
-// instance with the parsed values.
-// If the fields input is malformed and cannot be parsed into a valid Fields struct,
-// it returns an ErrMalformedFieldsInputDataProvided error.
+// NewFromInputs reads GitHub Action inputs, validates required values, masks
+// secrets, and returns a Config ready for the runner.
+//
+// It returns a typed error from internal/errors when required inputs are
+// missing, timeout parsing fails, notifier credentials are placeholders, or the
+// interactive field definition cannot be parsed.
 func NewFromInputs(action *githubactions.Action) (*Config, error) {
 
 	var err error
 
-	// handle input for fetching ngrok authtoken
+	// handle input for fetching ngrok auth token
 	ngrokAuthtokenInput := action.GetInput("ngrok-authtoken")
 	if ngrokAuthtokenInput == "" {
 		action.Errorf("The ngrok-authtoken was not provided, this is needed before the action can be used")
@@ -105,8 +107,8 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 	}
 	if timeoutInput != "" {
 		timeout, err = strconv.Atoi(timeoutInput)
-		if err != nil {
-			action.Fatalf("Cannot convert the 'timeout' input (%s) to an int!", timeoutInput)
+		if err != nil || timeout <= 0 {
+			action.Errorf("The 'timeout' input (%s) must be a positive integer", timeoutInput)
 			return nil, errors.ErrInvalidTimeoutValueProvided
 		}
 	}
@@ -127,7 +129,7 @@ func NewFromInputs(action *githubactions.Action) (*Config, error) {
 
 	// handle input for fetching slack notifier
 	var notifierSlackToken string = "xoxb-secret-token"
-	var notifierSlackChannel string = "#notificatins"
+	var notifierSlackChannel string = "#notifications"
 	var notifierSlackBotName string
 	var notifierSlackThreadTs string
 

@@ -26,18 +26,18 @@ To see the complete list of input field types and their respective properties su
 | name | description | required | default |
 | --- | --- | --- | --- |
 | `title` | <p>The title of the interactive inputs form</p> | `false` | `""` |
-| `interactive` | <p>The representation (in yaml) of fields to be displayed</p> | `true` | `fields:   - label: requested-files     properties:       display: Upload desired files       type: multifile       required: true       description: Upload desired files that are to be uploaded to the runner for processing   - label: random-string     properties:       display: Enter a random string       type: text       description: A random string up to 20 characters long       maxLength: 20       required: false   - label: choice     properties:       display: Select a monitoring tool       type: select       description: Available options to chose from       choices: ["datadog", "sentry", "grafana"]       required: true ` |
+| `interactive` | <p>The representation (in YAML) of fields to be displayed</p> | `true` | `fields:   - label: requested-files     properties:       display: Upload desired files       type: multifile       required: true       description: Upload desired files that are to be uploaded to the runner for processing   - label: random-string     properties:       display: Enter a random string       type: text       description: A random string up to 20 characters long       maxLength: 20       required: false   - label: choice     properties:       display: Select a monitoring tool       type: select       description: Available options to chose from       choices: ["datadog", "sentry", "grafana"]       required: true` |
 | `timeout` | <p>The timeout in seconds for the interactive inputs form</p> | `false` | `300` |
-| `ngrok-authtoken` | <p>The authtoken for ngrok used to expose the interactive inputs form</p> | `true` | `""` |
+| `ngrok-authtoken` | <p>The auth token for ngrok used to expose the interactive inputs form</p> | `true` | `""` |
 | `github-token` | <p>The token used to authenticate with GitHub API</p> | `true` | `${{ github.token }}` |
-| `notifier-slack-enabled` | <p>Whether to send a notification to Slack about the status of the interative inputs form</p> | `true` | `false` |
+| `notifier-slack-enabled` | <p>Whether to send a notification to Slack about the status of the interactive inputs form</p> | `false` | `false` |
 | `notifier-slack-thread-ts` | <p>The timestamp of the message to reply to in the thread</p> | `false` | `""` |
-| `notifier-slack-token` | <p>The token used to authenticate with Slack API</p> | `true` | `xoxb-secret-token` |
-| `notifier-slack-channel` | <p>The channel to send the notification to</p> | `true` | `#notificaitons` |
+| `notifier-slack-token` | <p>The token used to authenticate with Slack API</p> | `false` | `xoxb-secret-token` |
+| `notifier-slack-channel` | <p>The channel to send the notification to</p> | `false` | `#notifications` |
 | `notifier-slack-bot` | <p>The name of the bot to send the notification as</p> | `false` | `""` |
-| `notifier-discord-enabled` | <p>Whether to send a notification to Discord about the status of the interative inputs form</p> | `true` | `false` |
+| `notifier-discord-enabled` | <p>Whether to send a notification to Discord about the status of the interactive inputs form</p> | `false` | `false` |
 | `notifier-discord-thread-id` | <p>The ID of the Discord thread the message should be sent to</p> | `false` | `""` |
-| `notifier-discord-webhook` | <p>The webhook URL used to send the notification(s) to Discord</p> | `true` | `secret-webhook` |
+| `notifier-discord-webhook` | <p>The webhook URL used to send the notification(s) to Discord</p> | `false` | `secret-webhook` |
 | `notifier-discord-username` | <p>The username to send the notification(s) as</p> | `false` | `""` |
 <!-- action-docs-inputs source="action.yml" -->
 </details>
@@ -62,6 +62,12 @@ To get started, there are three main steps:
 3. Use the predictable output variables from your interactive input portal to create dynamic workflows.
 
 > Note, this action requires an ARM64 or AMD64 (x86) runner to run i.e. `ubuntu-latest`
+
+## Maintaining This Action
+
+This repository pins its maintainer toolchain in `.tool-versions`. Run `asdf install` from the repository root before updating dependencies, rebuilding binaries, or refreshing docs.
+
+Use `yarn package` after Go source or toolchain changes so the checked-in `dist/action-amd64` and `dist/action-arm64` binaries stay in sync with the source. Use `yarn readme --update` after changing `action.yml` so the generated inputs table in this README stays current.
 
 ### Sending notifications to Slack/ Discord
 
@@ -148,7 +154,7 @@ jobs:
         with:
           ngrok-authtoken: ${{ secrets.NGROK_AUTHTOKEN }}
           notifier-slack-enabled: "false"
-          notifier-slack-channel: "#notificaitons"
+          notifier-slack-channel: "#notifications"
           notifier-slack-token: ${{ secrets.SLACK_TOKEN }}
           notifier-slack-thread-ts: ""
           notifier-discord-enabled: "false"

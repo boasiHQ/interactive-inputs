@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// portalEventHandler expected methods for valid portal event handler
+// portalEventHandler describes the portal event endpoints mounted by AttachRoutes.
 type portalEventHandler interface {
 	SubmitPortal(w http.ResponseWriter, r *http.Request)
 	CancelPortal(w http.ResponseWriter, r *http.Request)
@@ -17,13 +17,12 @@ type portalEventHandler interface {
 	ResetUpload(w http.ResponseWriter, r *http.Request)
 }
 
-// uiHandler expected methods for valid ui handler
+// uiHandler describes the web UI endpoint mounted by AttachRoutes.
 type uiHandler interface {
 	Home(w http.ResponseWriter, r *http.Request)
 }
 
-// AttachRoutesRequest holds everything needed to attach portal
-// routes to router
+// AttachRoutesRequest holds everything needed to mount the portal routes.
 type AttachRoutesRequest struct {
 
 	// Router main router being served by API
@@ -45,8 +44,8 @@ type AttachRoutesRequest struct {
 	ActionPkg actionPkg
 }
 
-// AttachRoutes attaches portal handlers to corresponding
-// routes on router
+// AttachRoutes mounts static assets, page routes, and upload API routes on the
+// provided router.
 func AttachRoutes(request *AttachRoutesRequest) {
 
 	// Create filesystem only holding static assets
