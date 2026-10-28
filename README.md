@@ -26,7 +26,7 @@ To see the complete list of input field types and their respective properties su
 | name | description | required | default |
 | --- | --- | --- | --- |
 | `title` | <p>The title of the interactive inputs form</p> | `false` | `""` |
-| `interactive` | <p>The representation (in yaml) of fields to be displayed</p> | `true` | `fields:   - label: requested-files     properties:       display: Upload desired files       type: multifile       required: true       description: Upload desired files that are to be uploaded to the runner for processing   - label: random-string     properties:       display: Enter a random string       type: text       description: A random string up to 20 characters long       maxLength: 20       required: false   - label: choice     properties:       display: Select a monitoring tool       type: select       description: Available options to chose from       choices: ["datadog", "sentry", "grafana"]       required: true ` |
+| `interactive` | <p>The representation (in yaml) of fields to be displayed</p> | `true` | `fields:<br>  - label: requested-files<br>    properties:<br>      display: Upload desired files<br>      type: multifile<br>      required: true<br>      description: Upload desired files that are to be uploaded to the runner for processing<br>  - label: random-string<br>    properties:<br>      display: Enter a random string<br>      type: text<br>      description: A random string up to 20 characters long<br>      maxLength: 20<br>      required: false<br>  - label: choice<br>    properties:<br>      display: Select a monitoring tool<br>      type: select<br>      description: Available options to chose from<br>      choices: ["datadog", "sentry", "grafana"]<br>      required: true<br>` |
 | `timeout` | <p>The timeout in seconds for the interactive inputs form</p> | `false` | `300` |
 | `ngrok-authtoken` | <p>The authtoken for ngrok used to expose the interactive inputs form</p> | `true` | `""` |
 | `github-token` | <p>The token used to authenticate with GitHub API</p> | `true` | `${{ github.token }}` |
@@ -677,3 +677,12 @@ If you want to contribute, fix a bug, or play around with this action locally, p
 ## Licence
 
 MIT License - see [LICENSE.md](LICENSE.md) for details
+
+## Development
+
+Install the Node.js, Yarn and Go versions pinned in `.tool-versions` with `asdf install`. Install JavaScript dependencies with `yarn install --frozen-lockfile`, run `yarn test`, use `yarn readme --check` to check the action tables and `yarn readme --update` after metadata changes, and run `yarn package` to regenerate the Linux AMD64 and ARM64 binaries after Go source, dependencies or compiler changes. Review dependency updates and security reports before publishing.
+
+
+Browser assets are versioned in `src/internal/web/ui/vendor.json`; `yarn test:vendor` checks their recorded hashes and licences. The page uses a stylesheet generated with Tailwind CSS 3.4.19 and PostCSS 8.5.32 instead of a browser-side Play CDN compiler. Edit `tailwind.config.cjs` or `src/styles/tailwind.css`, then run `yarn build:css` and `yarn package`. `yarn test` checks stylesheet freshness.
+
+Run `yarn audit` and `npm audit signatures` for JavaScript security checks. From `src`, run `go mod verify` and `go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...`; use `-scan=module` without package patterns to check the entire module graph. The action runtime requires a GitHub Actions runner that supports Node 24.

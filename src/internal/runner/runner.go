@@ -163,7 +163,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 
 		serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, ln.URL())
 
-		cfg.Action.Noticef(serverInitMessage)
+		cfg.Action.Noticef("%s", serverInitMessage)
 
 		if slackNotifier.Enabled() {
 			_, err := slackNotifier.Notify(cfg.Title, fmt.Sprintf(notifierSlackEnterInputMessageTmpl, ln.URL()))
@@ -186,7 +186,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 			if err := http.Serve(ln, r); err != nil {
 				serverErrorMessage := fmt.Sprintf(universalNotifierFailedToSelfHost, err)
 
-				cfg.Action.Errorf(serverErrorMessage)
+				cfg.Action.Errorf("%s", serverErrorMessage)
 				if slackNotifier.Enabled() {
 					_, err := slackNotifier.Notify(cfg.Title, serverErrorMessage)
 					if err != nil {
@@ -212,7 +212,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 		completeLocalUrl := fmt.Sprintf("http://localhost%s", localPort)
 		serverInitMessage := fmt.Sprintf(serverInitMessageTmpl, completeLocalUrl)
 
-		cfg.Action.Noticef(serverInitMessage)
+		cfg.Action.Noticef("%s", serverInitMessage)
 		if slackNotifier.Enabled() {
 			_, err := slackNotifier.Notify(cfg.Title, fmt.Sprintf(notifierSlackEnterInputMessageTmpl, completeLocalUrl))
 			if err != nil {
@@ -234,7 +234,7 @@ func InvokeAction(ctx context.Context, ctxCancel context.CancelFunc, cfg *config
 			if err := server.ListenAndServe(); err != nil {
 				serverErrorMessage := fmt.Sprintf(universalNotifierFailedToSelfHost, err)
 
-				cfg.Action.Errorf(serverErrorMessage)
+				cfg.Action.Errorf("%s", serverErrorMessage)
 				if slackNotifier.Enabled() {
 					_, err := slackNotifier.Notify(cfg.Title, serverErrorMessage)
 					if err != nil {

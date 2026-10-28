@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "name": "htmx.org",
+      "version": "1.9.12",
+      "source": "https://registry.npmjs.org/htmx.org/-/htmx.org-1.9.12.tgz",
+      "repository": {
+        "url": "git+https://github.com/bigskysoftware/htmx.git",
+        "type": "git"
+      },
+      "archiveEntry": "package/dist/htmx.min.js",
+      "archiveIntegrity": "sha512-VZAohXyF7xPGS52IM8d1T1283y+X4D+Owf3qY1NZ9RuBypyu9l8cGsxUMAG5fEAb/DhT7rDoJ9Hpu5/HxFD3cw==",
+      "path": "src/internal/web/ui/static/libs/htmx.js",
+      "sha256": "449317ade7881e949510db614991e195c3a099c4c791c24dacec55f9f4a2a452",
+      "license": {
+        "path": "src/internal/web/ui/vendor-licenses/htmx.js.LICENSE",
+        "sha256": "d3d2456f76414f2456104660ebd65aff1c04cd7966b942bdabd63f3cdb316a38"
+      },
+      "signatures": [
+        {
+          "sig": "MEQCIDOTiRN7ugSMyoE8f6IK8o+PpMkI+Vzxh5UFhOhty/xKAiB6CAuOxTaGozbDHuQzcChzah1yVXw9QvGSwxdXdAVwhg==",
+          "keyid": "SHA256:jl3bwswu80PjjokCgh0o2w5c2U4LhQAE57gj9cz1kzA"
+        }
+      ]
+    },
+    {
+      "name": "alpinejs",
+      "version": "3.17.5",
+      "source": "https://registry.npmjs.org/alpinejs/-/alpinejs-3.17.5.tgz",
+      "repository": {
+        "url": "git+https://github.com/alpinejs/alpine.git",
+        "type": "git",
+        "directory": "packages/alpinejs"
+      },
+      "archiveEntry": "package/dist/cdn.min.js",
+      "archiveIntegrity": "sha512-XewMqRC6zjy8iaUPn86dxjvooAsNai3hUtQbdn0A5H2w7Jt10xHGZ1SczN5+Dvp3UKkuSEt9moy/UaUWOwKdnQ==",
+      "path": "src/internal/web/ui/static/libs/alpine.js",
+      "sha256": "b4036e9e9ac22fa6f6ae1ba292e015e1f3e9c85d0d79e73e4c8eb9bb139b522e",
+      "license": {
+        "path": "src/internal/web/ui/vendor-licenses/alpine-3.17.5.LICENSE",
+        "sha256": "08b7502da6e7aa1d0bbdc97d220fbf669b9366c61bd0f072238283c89bc4773a",
+        "source": "https://raw.githubusercontent.com/alpinejs/alpine/v3.17.5/LICENSE.md"
+      },
+      "signatures": [
+        {
+          "sig": "MEUCIQCZJvIsSXwkXxeVhOw0XGJfpYYLdsL8ZCTsobTPW378WAIgAfu4XwGSb29zLgk8nzsetDIUggTkrbd4hlRGYHV+a24=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIQDs4q5iELm/gYwwQ220HlQWxDqAtx8AR+s7aAReR2fQaAIgKb3zyn1GUrmVup1BfQsTBLA3KYAd3N0r+o3LRtjj+Gg=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ]
+    },
+    {
+      "name": "@alpinejs/persist",
+      "version": "3.17.5",
+      "source": "https://registry.npmjs.org/@alpinejs/persist/-/persist-3.17.5.tgz",
+      "repository": {
+        "url": "git+https://github.com/alpinejs/alpine.git",
+        "type": "git",
+        "directory": "packages/persist"
+      },
+      "archiveEntry": "package/dist/cdn.min.js",
+      "archiveIntegrity": "sha512-hH1UmIXgakz93pHFif5a6N0HLRO2237l7i0xvS7cpxV47WLJv8+1hAiWABjKZA2VQuWEghXMvYFjtoOLihP5PQ==",
+      "path": "src/internal/web/ui/static/libs/alpine-persist.js",
+      "sha256": "a5dcd888712ef90663b9aedb131515344cf7a7842cd520e75240824a2d105da4",
+      "license": {
+        "path": "src/internal/web/ui/vendor-licenses/alpine-3.17.5.LICENSE",
+        "sha256": "08b7502da6e7aa1d0bbdc97d220fbf669b9366c61bd0f072238283c89bc4773a",
+        "source": "https://raw.githubusercontent.com/alpinejs/alpine/v3.17.5/LICENSE.md"
+      },
+      "signatures": [
+        {
+          "sig": "MEQCIEtZX94TEJ2q4ic45cKwsoYi44ntbKpgG/SvpCOOOraIAiBiVC1qVZCNthxUBcrPf42Ta2hJaW+1TcFCS3POV/6Y8w==",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIQDVGNpgpyDrLJgpzKmN26/+q8ZWe9texjDgt8HHbMmkDQIgNHemcAtCwirBsDs1HixsTVVg+IZlw917hFPe3Fj6ti0=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ]
+    },
+    {
+      "name": "daisyui",
+      "version": "4.12.24",
+      "source": "https://registry.npmjs.org/daisyui/-/daisyui-4.12.24.tgz",
+      "repository": {
+        "url": "git+https://github.com/saadeghi/daisyui.git",
+        "type": "git"
+      },
+      "archiveEntry": "package/dist/full.css",
+      "archiveIntegrity": "sha512-JYg9fhQHOfXyLadrBrEqCDM6D5dWCSSiM6eTNCRrBRzx/VlOCrLS8eDfIw9RVvs64v2mJdLooKXY8EwQzoszAA==",
+      "path": "src/internal/web/ui/static/libs/daisyui-full.min.css",
+      "sha256": "fa8d769536a6db5e75c2f9f5312b6626a169b1ce7b2a039f3659be31da7e28af",
+      "license": {
+        "path": "src/internal/web/ui/vendor-licenses/daisyui-full.min.css.LICENSE",
+        "sha256": "8709e3ac65c84637c422dc8082b893d9997fce093751c77b2f1983bf29dbf9ea"
+      },
+      "signatures": [
+        {
+          "sig": "MEUCIALtUoCBjKwgmCQmz7/Loow6rpbwcLOoAZOuobaiXIdEAiEA2UoLN5eoYkzejf63pOBxIKIeloO5SFTkMTqGmZEak9M=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ]
+    }
+  ]
+}

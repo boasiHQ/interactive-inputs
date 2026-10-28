@@ -101,7 +101,7 @@ env \
   'INPUT_GITHUB-TOKEN=github-secret-token' \
   'INPUT_NGROK-AUTHTOKEN=1234567890' \
   'IAIP_LOCAL_RUN=true' \
-  'IAIP_SKIP_CONFIG_PARSE=0' \
+  'IAIP_SKIP_CONFIG_PARSE=' \
   go run main.go
 ```
 
@@ -209,7 +209,7 @@ reflex -r '\.(html|go|css|png|svg|ico|js|woff2|woff|ttf|eot)$' -s -- env \
   'INPUT_GITHUB-TOKEN=github-secret-token' \
   'INPUT_NGROK-AUTHTOKEN=1234567890' \
   'IAIP_LOCAL_RUN=true' \
-  'IAIP_SKIP_CONFIG_PARSE=0' \
+  'IAIP_SKIP_CONFIG_PARSE=' \
   go run main.go
 ```
 
@@ -233,21 +233,13 @@ go test -v  ./...
 
 ### Building binary
 
-There are two methods of building the binary. It can be done with native go build command.
-
-
-```sh
-# For Linux AMD64
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags=\"-w -s\" -o dist/action-amd64 main.go
-
-# For Linux ARM64
-CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -installsuffix cgo -ldflags=\"-w -s\" -o dist/action-arm64 main.go
-```
-
-**or**
-
-It can be done using the package.json script (this is done automatically on push)
+From the repository root, install the pinned toolchains and JavaScript dependencies, then compile the stylesheet and both Linux architectures:
 
 ```sh
-npm run package
+asdf install
+yarn install --frozen-lockfile
+yarn test
+yarn package
 ```
+
+`yarn package` first runs `yarn build:css`, then builds the AMD64 and ARM64 binaries in `dist/`. Rebuild after changing Go source, dependencies, embedded browser assets, templates, the Tailwind configuration or CSS input. `yarn check:css` checks that the committed stylesheet matches its inputs.

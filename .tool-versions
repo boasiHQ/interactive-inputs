@@ -1,8 +1,3 @@
-# asdf plugin-add nodejs
-nodejs 20.12.2
-
-# asdf plugin-add yarn
-yarn 1.22.18
-
-# asdf plugin-add golang
-golang 1.22.0
+nodejs 24.22.1
+yarn 1.22.22
+golang 1.26.10

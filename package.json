@@ -7,15 +7,25 @@
   "repository": "https://github.com/boasiHQ/interactive-inputs.git",
   "license": "MIT",
   "scripts": {
-    "readme": "action-docs -un -t 1",
-    "package": "echo 'building binaries...' && cd src && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags=\"-w -s\" -o ../dist/action-amd64 main.go && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -installsuffix cgo -ldflags=\"-w -s\" -o ../dist/action-arm64 main.go",
+    "readme": "node scripts/action-docs.cjs",
+    "package": "yarn build:css && cd src && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags=\"-s -w\" -o ../dist/action-amd64 . && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -buildvcs=false -trimpath -ldflags=\"-s -w\" -o ../dist/action-arm64 .",
     "fmt": "cd src && go fmt  ./...",
-    "test": "cd src && go test -v  ./...",
-    "test:coverage": "cd src && go test -coverprofile=cover.out ./... && go tool cover -html=cover.out"
+    "test": "node --test scripts/*.test.cjs && yarn test:vendor && yarn check:css && yarn readme --check && cd src && go test ./...",
+    "test:coverage": "cd src && go test -coverprofile=cover.out ./... && go tool cover -html=cover.out",
+    "test:vendor": "node scripts/check-vendor.cjs",
+    "build:css": "node scripts/build-css.cjs",
+    "check:css": "node scripts/build-css.cjs --check"
   },
   "devDependencies": {
-    "action-docs": "^2.4.0",
-    "husky": "^9.0.11",
-    "prettier": "^3.2.5"
+    "husky": "9.1.7",
+    "prettier": "3.9.10",
+    "yaml": "2.9.1",
+    "tailwindcss": "3.4.19",
+    "postcss": "8.5.32"
+  },
+  "packageManager": "yarn@1.22.22",
+  "engines": {
+    "node": ">=24.22.1 <25",
+    "yarn": "1.22.22"
   }
 }

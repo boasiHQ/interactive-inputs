@@ -123,10 +123,9 @@ class Toasty {
       toast.target = obj.linkTarget ? obj.linkTarget : "_self";
     }
 
+    toast.style.zIndex = String(obj.zIndex ?? this.options.zIndex);
     toast.className =
-      `fixed z-${
-        "[" + (obj.zIndex ?? this.options.zIndex) + "]"
-      } max-w-sm  shadow-lg rounded-lg flex px-4 py-2 transform -translate-y-full ` +
+      "fixed max-w-sm shadow-lg rounded-lg flex px-4 py-2 transform -translate-y-full " +
       toastStyle.main +
       (obj.style ? " " + obj.style : "") +
       " " +
